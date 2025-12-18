@@ -1,0 +1,6 @@
+hBnB9tKPVAE3q20c pass for mongo
+node_modules/
+.env
+.env.local
+.DS_Store
+*.log
