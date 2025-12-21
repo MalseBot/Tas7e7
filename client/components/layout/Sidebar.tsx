@@ -1,72 +1,95 @@
 /** @format */
 
-// components/layout/Sidebar.tsx
+// components/layout/sidebar.tsx
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
 	LayoutDashboard,
 	ShoppingCart,
-	History,
+	ChefHat,
 	Package,
+	BarChart3,
 	Settings,
-	LogOut,
+	Users,
+	Receipt,
+	Home,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+const menuItems = [
+	{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+	{ href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart },
+	{ href: '/dashboard/kitchen', label: 'Kitchen', icon: ChefHat },
+	{ href: '/dashboard/orders', label: 'Orders', icon: Receipt },
+	{ href: '/dashboard/menu', label: 'Menu', icon: Package },
+	{ href: '/dashboard/staff', label: 'Staff', icon: Users },
+	{ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
+	{ href: '/dashboard/settings', label: 'Settings', icon: Settings },
+];
 
 interface SidebarProps {
-	currentView: string;
-	onViewChange: (view: 'dashboard' | 'pos' | 'history' | 'products') => void;
+	onClose?: () => void;
 }
 
-export function Sidebar({ currentView, onViewChange }: SidebarProps) {
-	const menuItems = [
-		{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-		{ id: 'pos', label: 'Point of Sale', icon: ShoppingCart },
-		{ id: 'history', label: 'Sales History', icon: History },
-		{ id: 'products', label: 'Products', icon: Package },
-	];
+export function Sidebar({ onClose }: SidebarProps) {
+	const pathname = usePathname();
 
 	return (
-		<aside className='hidden md:flex md:w-64 lg:w-72 bg-card border-r border-border flex-col min-h-[calc(100vh-4rem)] mt-16'>
+		<aside className='h-full w-64 bg-card border-r border-border flex flex-col'>
+			{/* Logo */}
+			<div className='p-6 border-b border-border'>
+				<Link
+					href='/dashboard'
+					className='flex items-center gap-2'
+					onClick={onClose}>
+					<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+						<Home className='w-5 h-5 text-white' />
+					</div>
+					<span className='text-xl font-bold text-foreground'>Café POS</span>
+				</Link>
+			</div>
+
+			{/* Navigation */}
 			<nav className='flex-1 p-4'>
-				<ul className='space-y-1'>
+				<ul className='space-y-2'>
 					{menuItems.map((item) => {
 						const Icon = item.icon;
-						const isActive = currentView === item.id;
+						const isActive =
+							pathname === item.href || pathname.startsWith(`${item.href}/`);
 
 						return (
-							<li key={item.id}>
-								<Button
-									variant={isActive ? 'default' : 'ghost'}
-									className={`w-full justify-start gap-3 ${
-										isActive
-											? ''
-											: 'hover:bg-accent hover:text-accent-foreground'
-									}`}
-									onClick={() => onViewChange(item.id as any)}>
+							<li key={item.href}>
+								<Link
+									href={item.href}
+									onClick={onClose}
+									className={cn(
+										'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+										isActive ?
+											'bg-primary text-primary-foreground'
+										:	'hover:bg-muted'
+									)}>
 									<Icon className='w-5 h-5' />
 									<span className='font-medium'>{item.label}</span>
-								</Button>
+								</Link>
 							</li>
 						);
 					})}
 				</ul>
 			</nav>
 
-			<div className='p-4 border-t border-border space-y-2'>
-				<Button
-					variant='ghost'
-					className='w-full justify-start gap-3'>
-					<Settings className='w-5 h-5' />
-					<span className='font-medium'>Settings</span>
-				</Button>
-
-				<Button
-					variant='ghost'
-					className='w-full justify-start gap-3 text-destructive hover:text-destructive'>
-					<LogOut className='w-5 h-5' />
-					<span className='font-medium'>Logout</span>
-				</Button>
+			{/* Current User */}
+			<div className='p-4 border-t border-border'>
+				<div className='flex items-center gap-3'>
+					<div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center'>
+						<Users className='w-5 h-5 text-muted-foreground' />
+					</div>
+					<div>
+						<p className='font-medium text-foreground'>John Cashier</p>
+						<p className='text-sm text-muted-foreground'>Cashier</p>
+					</div>
+				</div>
 			</div>
 		</aside>
 	);

@@ -1,20 +1,8 @@
-/**
- * @format
- * @type {import('next').NextConfig}
- */
+import type { NextConfig } from "next";
 
-const nextConfig = {
-	reactStrictMode: true,
-	// Remove swcMinify - it's enabled by default in Next.js 13+
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'https',
-				hostname: '**',
-			},
-		],
-	},
-	// Add if you need to handle external images
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
 };
 
-module.exports = nextConfig;
+export default nextConfig;
