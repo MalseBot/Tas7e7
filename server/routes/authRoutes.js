@@ -4,15 +4,18 @@
 import { Router } from 'express';
 const router = Router();
 import authController from '../controllers/authController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 const {
 	register,
 	login,
 	pinLogin,
 	getMe,
+	publicRegister
 } = authController
 
-router.post('/register', protect, authorize('manager', 'admin'), register);
+router.post('/register/public', publicRegister);  // Public
+
+router.post('/register', register,protect);
 router.post('/login', login);
 router.post('/pin-login', pinLogin);
 router.get('/me', protect, getMe);

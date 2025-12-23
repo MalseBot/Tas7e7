@@ -10,7 +10,13 @@ export const authService = {
 	pinLogin: (email: string, pin: string) =>
 		api.post('/auth/pin-login', { email, pin }),
 	getProfile: () => api.get('/auth/me'),
-	register: (data: any) => api.post('/auth/register', data),
+	register: (data: {
+		name: string;
+		email: string;
+		password: string;
+		role: string;
+		pin?: string;
+	}) => api.post('/auth/register', data),
 };
 
 // Order Services

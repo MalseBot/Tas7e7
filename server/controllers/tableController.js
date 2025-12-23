@@ -2,12 +2,11 @@
 
 // src/controllers/tableController.js
 import Table from '../models/Table.js';
-const { find, create, findById }=Table
 const tableController = {
 	// Get all tables
 	getTables: async (req, res, next) => {
 		try {
-			const tables = await find().sort('tableNumber');
+			const tables = await Table.find().sort('tableNumber');
 
 			res.status(200).json({
 				success: true,
@@ -24,7 +23,7 @@ const tableController = {
 		try {
 			const { tableNumber, capacity, location } = req.body;
 
-			const table = await create({
+			const table = await Table.create({
 				tableNumber,
 				capacity,
 				location,
@@ -44,7 +43,7 @@ const tableController = {
 		try {
 			const { status } = req.body;
 
-			const table = await findById(req.params.id);
+			const table = await Table.findById(req.params.id);
 
 			if (!table) {
 				return res.status(404).json({
@@ -79,7 +78,7 @@ const tableController = {
 	// Get table with current order
 	getTableWithOrder: async (req, res, next) => {
 		try {
-			const table = await findById(req.params.id).populate({
+			const table = await Table.findById(req.params.id).populate({
 				path: 'currentOrder',
 				populate: {
 					path: 'items.menuItem',

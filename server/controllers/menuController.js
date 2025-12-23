@@ -1,8 +1,8 @@
 /** @format */
 
 // src/controllers/menuController.js (COMPLETE)
-import MenuItem from '../models/MenuItem.js';
-const { find, findById, create, findByIdAndUpdate, distinct } = MenuItem
+import MenuItem from "../models/MenuItem.js";
+
 const menuController = {
 	// Get all menu items (public)
 	getMenuItems: async (req, res, next) => {
@@ -19,7 +19,7 @@ const menuController = {
 				query.isAvailable = true;
 			}
 
-			const menuItems = await find(query).sort('category name');
+			const menuItems = await MenuItem.find(query).sort('category name');
 
 			// Group by category for easier frontend display
 			const groupedByCategory = menuItems.reduce((acc, item) => {
@@ -44,7 +44,7 @@ const menuController = {
 	// Get single menu item
 	getMenuItem: async (req, res, next) => {
 		try {
-			const menuItem = await findById(req.params.id);
+			const menuItem = await MenuItem.findById(req.params.id);
 
 			if (!menuItem) {
 				return res.status(404).json({
@@ -65,7 +65,7 @@ const menuController = {
 	// Create menu item
 	createMenuItem: async (req, res, next) => {
 		try {
-			const menuItem = await create(req.body);
+			const menuItem = await MenuItem.create(req.body);
 
 			res.status(201).json({
 				success: true,
@@ -79,7 +79,7 @@ const menuController = {
 	// Update menu item
 	updateMenuItem: async (req, res, next) => {
 		try {
-			const menuItem = await findByIdAndUpdate(
+			const menuItem = await MenuItem.findByIdAndUpdate(
 				req.params.id,
 				req.body,
 				{
@@ -107,7 +107,7 @@ const menuController = {
 	// Delete menu item
 	deleteMenuItem: async (req, res, next) => {
 		try {
-			const menuItem = await findById(req.params.id);
+			const menuItem = await MenuItem.findById(req.params.id);
 
 			if (!menuItem) {
 				return res.status(404).json({
@@ -133,7 +133,7 @@ const menuController = {
 	// Toggle availability
 	toggleAvailability: async (req, res, next) => {
 		try {
-			const menuItem = await findById(req.params.id);
+			const menuItem = await MenuItem.findById(req.params.id);
 
 			if (!menuItem) {
 				return res.status(404).json({
@@ -160,7 +160,7 @@ const menuController = {
 	// Get categories
 	getCategories: async (req, res, next) => {
 		try {
-			const categories = await distinct('category');
+			const categories = await MenuItem.distinct('category');
 
 			res.status(200).json({
 				success: true,
@@ -174,9 +174,9 @@ const menuController = {
 	// Get low stock items
 	getLowStockItems: async (req, res, next) => {
 		try {
-			const lowStockItems = await find({
+			const lowStockItems = await MenuItem.find({
 				stock: { $gt: 0, $lt: 10 },
-			}).sort('stock');
+			})
 
 			res.status(200).json({
 				success: true,

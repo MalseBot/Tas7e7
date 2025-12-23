@@ -1,0 +1,5 @@
+{"PORT":"5000",
+"MONGODB_URI":"mongodb+srv://eso20016_db_user:hBnB9tKPVAE3q20c@tas7e7.fziq7zt.mongodb.net/?appName=Tas7e7",
+"JWT_SECRET":"e05c811170e231f4d0d659dcc34a27c5da03c627e361557e4544041e14a5caa38aa00948ce51360c8cd835daa42dc54a735701c2d3cf35701a050771c5232fbb",
+"JWT_EXPIRE":"7d",
+"NODE_ENV":"development"}

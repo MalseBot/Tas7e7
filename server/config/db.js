@@ -3,11 +3,16 @@
 // config/db.js
 import mongoose from 'mongoose';
 
+import config from 'config'
+const db = config.get('MONGODB_URI');
+
 const connectDB = async () => {
 	try {
-		const conn = await mongoose.connect(process.env.MONGODB_URI);
+		const conn = await mongoose.connect(db);
 
-		console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+		console.log(
+			`✅ MongoDB Connected: ${conn.connection.host}  `
+		);
 
 		// Handle connection events
 		mongoose.connection.on('error', (err) => {
@@ -25,7 +30,9 @@ const connectDB = async () => {
 			process.exit(0);
 		});
 	} catch (error) {
-		console.error(`❌ MongoDB connection failed: ${error.message}`);
+		console.error(
+			`❌ MongoDB connection failed: ${error.message} ${process.env.MONGODB_URI}`
+		);
 		process.exit(1);
 	}
 };

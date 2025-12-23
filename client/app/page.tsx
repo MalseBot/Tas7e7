@@ -1,44 +1,59 @@
 /** @format */
 
-// app/page.tsx (Hybrid Approach)
+// Updated app/page.tsx with registration awareness
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import LandingPageContent from '@/components/home/landing-page';
+import { Coffee, Loader2 } from 'lucide-react';
 
 export default function HomePage() {
 	const router = useRouter();
-	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
 	useEffect(() => {
-		// Check authentication status
-		const token = localStorage.getItem('token');
-		const user = localStorage.getItem('user');
+		// Check if setup is needed (no users in system)
+		const checkSetup = async () => {
+			try {
+				// You could make an API call here to check if any users exist
+				// For now, we'll check localStorage
+				const token = localStorage.getItem('token');
+				const user = localStorage.getItem('user');
 
-		if (token && user) {
-			setIsAuthenticated(true);
-			// Redirect authenticated users to dashboard
-			router.push('/dashboard');
-		} else {
-			setIsAuthenticated(false);
-		}
+				if (token && user) {
+					router.push('/dashboard');
+				} else {
+					// Check if this is first time setup
+					const isFirstVisit = !localStorage.getItem('hasVisited');
+
+					if (isFirstVisit) {
+						localStorage.setItem('hasVisited', 'true');
+						// Optionally redirect to setup page
+						// router.push('/setup');
+					}
+
+					router.push('/login');
+				}
+			} catch (error) {
+				router.push('/login');
+			}
+		};
+
+		checkSetup();
 	}, [router]);
 
-	// Show loading state while checking auth
-	if (isAuthenticated === null) {
-		return (
-			<div className='min-h-screen flex items-center justify-center'>
-				<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary'></div>
+	return (
+		<div className='min-h-screen flex items-center justify-center bg-linear-to-br from-primary/10 to-secondary/10'>
+			{/* Loading spinner */}
+			<div className='text-center'>
+				<div className='inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-6 animate-pulse'>
+					<Coffee className='w-10 h-10 text-white' />
+				</div>
+				<h1 className='text-3xl font-bold text-foreground mb-2'>Café POS</h1>
+				<div className='flex items-center justify-center gap-2'>
+					<Loader2 className='w-5 h-5 animate-spin text-primary' />
+					<span className='text-sm text-muted-foreground'>Loading...</span>
+				</div>
 			</div>
-		);
-	}
-
-	// Show landing page to unauthenticated users
-	if (isAuthenticated === false) {
-		return <LandingPageContent />;
-	}
-
-	// For authenticated users (will redirect via useEffect)
-	return null;
+		</div>
+	);
 }

@@ -1,78 +1,83 @@
-/* app/globals.css */
-@tailwind utilities;
+/** app/globals.css - Tailwind v4 with @tailwindcss/postcss */
+@import "tailwindcss";
 
-@reference "tailwindcss";
-
-
-@layer base {
-  :root {
-    --background: #EBD5AB;
-    --foreground: #1B211A;
-    --card: #ffffff;
-    --card-foreground: #1B211A;
-    --popover: #ffffff;
-    --popover-foreground: #1B211A;
-    --primary: #628141;
-    --primary-foreground: #ffffff;
-    --secondary: #8BAE66;
-    --secondary-foreground: #1B211A;
-    --muted: #EBD5AB;
-    --muted-foreground: #628141;
-    --accent: #8BAE66;
-    --accent-foreground: #1B211A;
-    --destructive: #d4183d;
-    --destructive-foreground: #ffffff;
-    --border: rgba(27, 33, 26, 0.15);
-    --input: transparent;
-    --input-background: #ffffff;
-    --ring: #628141;
-    --chart-1: #628141;
-    --chart-2: #8BAE66;
-    --chart-3: #EBD5AB;
-    --chart-4: #1B211A;
-    --chart-5: #a3c584;
-    --radius: 0.625rem;
-  }
-
-  .dark {
-    --background: #1B211A;
-    --foreground: #EBD5AB;
-    --card: #1B211A;
-    --card-foreground: #EBD5AB;
-    --popover: #1B211A;
-    --popover-foreground: #EBD5AB;
-    --primary: #8BAE66;
-    --primary-foreground: #1B211A;
-    --secondary: #628141;
-    --secondary-foreground: #EBD5AB;
-    --muted: #1B211A;
-    --muted-foreground: #8BAE66;
-    --accent: #628141;
-    --accent-foreground: #EBD5AB;
-    --destructive: #d4183d;
-    --destructive-foreground: #ffffff;
-    --border: rgba(235, 213, 171, 0.2);
-    --input: #1B211A;
-    --ring: #8BAE66;
-  }
+@theme {
+  /* Define ALL your theme variables here */
+  --color-primary: #628141;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #8BAE66;
+  --color-secondary-foreground: #1B211A;
+  --color-background: #EBD5AB;
+  --color-foreground: #1B211A;
+  --color-card: #ffffff;
+  --color-card-foreground: #1B211A;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1B211A;
+  --color-muted: #EBD5AB;
+  --color-muted-foreground: #628141;
+  --color-accent: #8BAE66;
+  --color-accent-foreground: #1B211A;
+  --color-destructive: #d4183d;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgba(27, 33, 26, 0.15);
+  --color-input: transparent;
+  --color-ring: #628141;
+  
+  /* Chart colors */
+  --color-chart-1: #628141;
+  --color-chart-2: #8BAE66;
+  --color-chart-3: #EBD5AB;
+  --color-chart-4: #1B211A;
+  --color-chart-5: #a3c584;
+  
+  /* Border radius */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Dark mode colors */
+  /* .dark {
+    --color-background: #1B211A;
+    --color-foreground: #EBD5AB;
+    --color-card: #1B211A;
+    --color-card-foreground: #EBD5AB;
+    --color-popover: #1B211A;
+    --color-popover-foreground: #EBD5AB;
+    --color-primary: #8BAE66;
+    --color-primary-foreground: #1B211A;
+    --color-secondary: #628141;
+    --color-secondary-foreground: #EBD5AB;
+    --color-muted: #1B211A;
+    --color-muted-foreground: #8BAE66;
+    --color-accent: #628141;
+    --color-accent-foreground: #EBD5AB;
+    --color-destructive: #d4183d;
+    --color-destructive-foreground: #ffffff;
+    --color-border: rgba(235, 213, 171, 0.2);
+    --color-input: #1B211A;
+    --color-ring: #8BAE66;
+  } */
 }
 
 @layer base {
   * {
-    /* Replaced @apply border-border; */
-    border-color: var(--border);
+    @apply border-border outline-ring/50;
   }
-  
+
   body {
-    /* Replaced @apply bg-background text-foreground; */
-    background-color: var(--background);
-    color: var(--foreground);
+    @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
+
 @layer utilities {
+  /* Your gradient fix - MUST use this approach */
+  
+  /* Typography utilities */
   .text-balance {
     text-wrap: balance;
   }

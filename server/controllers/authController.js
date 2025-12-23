@@ -52,6 +52,50 @@ const authController = {
 		}
 	},
 
+	// @desc    Register new user (Public - limited)
+	// @route   POST /api/auth/register/public
+	// @access  Public
+	publicRegister: async (req, res, next) => {
+		try {
+			const { name, email, password } = req.body;
+
+			// Check if user exists
+			const userExists = await User.findOne({ email });
+			if (userExists) {
+				return res.status(400).json({
+					success: false,
+					error: 'User already exists',
+				});
+			}
+
+			// Create user with default role
+			const user = await User.create({
+				name,
+				email,
+				password,
+				role: 'cashier', // Default role
+				pin: null, // No PIN by default
+				isActive: true,
+			});
+
+			// Create token
+			const token = generateToken(user._id);
+
+			res.status(201).json({
+				success: true,
+				token,
+				user: {
+					id: user._id,
+					name: user.name,
+					email: user.email,
+					role: user.role,
+				},
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+
 	// @desc    Login staff member
 	// @route   POST /api/auth/login
 	// @access  Public

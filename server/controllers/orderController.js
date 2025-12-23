@@ -4,13 +4,7 @@
 import Order from '../models/Order.js';
 import MenuItem from '../models/MenuItem.js';
 import Table from '../models/Table.js';
-const { findOne, findOneAndUpdate } = Table
-const {
-	find,
-	countDocuments,
-	findById,
-	findByIdAndUpdate,
-} = Order
+
 const orderController = {
 	// @desc    Create new order
 	// @route   POST /api/orders
@@ -33,7 +27,7 @@ const orderController = {
 			let invalidItems = [];
 
 			for (const item of items) {
-				const menuItem = await MenuItem._findById(item.menuItem);
+				const menuItem = await MenuItem.findById(item.menuItem);
 
 				if (!menuItem) {
 					invalidItems.push(item.menuItem);
@@ -97,7 +91,7 @@ const orderController = {
 			// Update table status
 			let table;
 			if (tableNumber) {
-				table = await findOne({ tableNumber });
+				table = await Table.findOne({ tableNumber });
 
 				if (table) {
 					if (table.status === 'occupied') {
@@ -110,7 +104,7 @@ const orderController = {
 					table.status = 'occupied';
 				} else {
 					// Create table if it doesn't exist
-					table = await _create({
+					table = await Table.create({
 						tableNumber,
 						capacity: 4, // Default capacity
 						status: 'occupied',
@@ -121,7 +115,7 @@ const orderController = {
 			// Calculate estimated ready time (longest preparation time)
 			const prepTimes = await Promise.all(
 				orderItems.map(async (item) => {
-					const menuItem = await _findById(item.menuItem);
+					const menuItem = await MenuItem.findById(item.menuItem);
 					return menuItem.preparationTime * item.quantity;
 				})
 			);
@@ -186,13 +180,13 @@ const orderController = {
 			const limitNum = parseInt(limit);
 			const skip = (pageNum - 1) * limitNum;
 
-			const orders = await find(query)
+			const orders = await Order.find(query)
 				.populate('cashier', 'name email')
 				.sort({ createdAt: -1 })
 				.skip(skip)
 				.limit(limitNum);
 
-			const total = await countDocuments(query);
+			const total = await Order.countDocuments(query);
 
 			res.status(200).json({
 				success: true,
@@ -212,7 +206,7 @@ const orderController = {
 	// @access  Private
 	getOrder: async (req, res, next) => {
 		try {
-			const order = await findById(req.params.id)
+			const order = await Order.findById(req.params.id)
 				.populate('cashier', 'name email')
 				.populate('items.menuItem');
 
@@ -255,7 +249,7 @@ const orderController = {
 				});
 			}
 
-			const order = await findById(req.params.id);
+			const order = await Order.findById(req.params.id);
 
 			if (!order) {
 				return res.status(404).json({
@@ -271,7 +265,7 @@ const orderController = {
 				// Calculate estimated ready time when starting preparation
 				const prepTimes = await Promise.all(
 					order.items.map(async (item) => {
-						const menuItem = await _findById(item.menuItem);
+						const menuItem = await MenuItem.findById(item.menuItem);
 						return (menuItem?.preparationTime || 10) * item.quantity;
 					})
 				);
@@ -290,7 +284,7 @@ const orderController = {
 			if (status === 'cancelled') {
 				// Restore stock if order is cancelled
 				for (const item of order.items) {
-					const menuItem = await _findById(item.menuItem);
+					const menuItem = await MenuItem.findById(item.menuItem);
 					if (menuItem && menuItem.stock !== undefined) {
 						menuItem.stock += item.quantity;
 						await menuItem.save();
@@ -299,14 +293,14 @@ const orderController = {
 
 				// Free table if it was a table order
 				if (order.tableNumber && order.tableNumber !== 'Takeaway') {
-					await findOneAndUpdate(
+					await Table.findOneAndUpdate(
 						{ tableNumber: order.tableNumber },
 						{ status: 'available', currentOrder: null }
 					);
 				}
 			}
 
-			const updatedOrder = await findByIdAndUpdate(req.params.id, updates, {
+			const updatedOrder = await Order.findByIdAndUpdate(req.params.id, updates, {
 				new: true,
 				runValidators: true,
 			});
@@ -328,7 +322,7 @@ const orderController = {
 		try {
 			const { paymentMethod, tip, discountCode } = req.body;
 
-			const order = await findById(req.params.id);
+			const order = await Order.findById(req.params.id);
 
 			if (!order) {
 				return res.status(404).json({
@@ -358,11 +352,10 @@ const orderController = {
 			// Update payment details
 			order.paymentMethod = paymentMethod || 'cash';
 			order.paymentStatus = 'paid';
-			order.status = 'paid';
-
+			order.status='preparing';
 			// Free table if it was a table order
 			if (order.tableNumber && order.tableNumber !== 'Takeaway') {
-				await findOneAndUpdate(
+				await Table.findOneAndUpdate(
 					{ tableNumber: order.tableNumber },
 					{ status: 'available', currentOrder: null }
 				);
