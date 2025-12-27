@@ -25,6 +25,7 @@ const orderController = {
 			// Get menu item details and validate
 			const orderItems = [];
 			let invalidItems = [];
+			let estimatedReadyTime = 0;
 
 			for (const item of items) {
 				const menuItem = await MenuItem.findById(item.menuItem);
@@ -49,11 +50,11 @@ const orderController = {
 					});
 				}
 
-				// Build order item
+				// Build order item WITH PRICE
 				const orderItem = {
 					menuItem: menuItem._id,
 					name: menuItem.name,
-					price: menuItem.price,
+					price: menuItem.price, // CRITICAL: Include price
 					quantity: item.quantity,
 					specialInstructions: item.specialInstructions || '',
 					modifiers: item.modifiers || [],
@@ -69,15 +70,29 @@ const orderController = {
 							name: variant.name,
 							price: variant.price,
 						};
+						// Use variant price instead of base price
+						orderItem.price = variant.price;
+					}
+				}
+
+				// Handle modifiers price
+				if (item.modifiers && Array.isArray(item.modifiers)) {
+					for (const modifierName of item.modifiers) {
+						const modifier = menuItem.modifiers?.find(
+							(m) => m.name === modifierName
+						);
+						if (modifier && modifier.price) {
+							orderItem.price += modifier.price;
+						}
 					}
 				}
 
 				orderItems.push(orderItem);
 
-				// Update stock
-				if (menuItem.stock !== undefined) {
-					menuItem.stock -= item.quantity;
-					await menuItem.save();
+				// Track the longest preparation time
+				const itemPrepTime = (menuItem.preparationTime || 0) * item.quantity;
+				if (itemPrepTime > estimatedReadyTime) {
+					estimatedReadyTime = itemPrepTime;
 				}
 			}
 
@@ -112,18 +127,11 @@ const orderController = {
 				}
 			}
 
-			// Calculate estimated ready time (longest preparation time)
-			const prepTimes = await Promise.all(
-				orderItems.map(async (item) => {
-					const menuItem = await MenuItem.findById(item.menuItem);
-					return menuItem.preparationTime * item.quantity;
-				})
-			);
+			// Calculate estimated ready time
+			estimatedReadyTime = new Date(Date.now() + estimatedReadyTime * 60000);
 
-			const maxPrepTime = Math.max(...prepTimes);
-			const estimatedReadyTime = new Date(Date.now() + maxPrepTime * 60000);
-
-			// Create order
+			// REMOVED: Don't calculate subtotal/total here - pre-save hook will handle it
+			// Create order WITHOUT setting subtotal and total to 0
 			const order = await Order.create({
 				items: orderItems,
 				tableNumber: tableNumber || 'Takeaway',
@@ -131,8 +139,9 @@ const orderController = {
 				orderType: orderType || 'dine-in',
 				kitchenNotes: kitchenNotes || '',
 				status: 'pending',
-				subTotal: 0, // Will be calculated by pre-save hook
-				total: 0, // Will be calculated by pre-save hook
+				// REMOVED: Don't set these here
+				// subTotal: 0,
+				// total: 0,
 				cashier: req.user.id,
 				estimatedReadyTime,
 				paymentStatus: 'pending',
@@ -144,6 +153,14 @@ const orderController = {
 				await table.save();
 			}
 
+			// Update stock AFTER order is created
+			for (const item of orderItems) {
+				const menuItem = await MenuItem.findById(item.menuItem);
+				if (menuItem && menuItem.stock !== undefined) {
+					menuItem.stock -= item.quantity;
+					await menuItem.save();
+				}
+			}
 
 			res.status(201).json({
 				success: true,
@@ -300,10 +317,14 @@ const orderController = {
 				}
 			}
 
-			const updatedOrder = await Order.findByIdAndUpdate(req.params.id, updates, {
-				new: true,
-				runValidators: true,
-			});
+			const updatedOrder = await Order.findByIdAndUpdate(
+				req.params.id,
+				updates,
+				{
+					new: true,
+					runValidators: true,
+				}
+			);
 
 			res.status(200).json({
 				success: true,
@@ -352,7 +373,7 @@ const orderController = {
 			// Update payment details
 			order.paymentMethod = paymentMethod || 'cash';
 			order.paymentStatus = 'paid';
-			order.status='preparing';
+			order.status = 'preparing';
 			// Free table if it was a table order
 			if (order.tableNumber && order.tableNumber !== 'Takeaway') {
 				await Table.findOneAndUpdate(

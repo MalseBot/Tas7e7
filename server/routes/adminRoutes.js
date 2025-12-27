@@ -21,17 +21,17 @@ router.get('/staff', getAllStaff);
 router.put('/staff/:id', updateStaffRole);
 
 // Settings (placeholder)
-router.get('/settings', (req, res) => {
-	res.json({
-		success: true,
-		data: {
-			cafeName: 'My Café',
-			taxRate: 13,
-			currency: 'USD',
-			openingHours: '08:00',
-			closingHours: '22:00',
-		},
-	});
-});
+// router.get('/settings', (req, res) => {
+// 	res.json({
+// 		success: true,
+// 		data: {
+// 			cafeName: 'My Café',
+// 			taxRate: 13,
+// 			currency: 'USD',
+// 			openingHours: '08:00',
+// 			closingHours: '22:00',
+// 		},
+// 	});
+// });
 
 export default router;

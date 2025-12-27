@@ -60,9 +60,9 @@ export const kitchenService = {
 export const adminService = {
 	getDashboardStats: () => api.get('/admin/dashboard'),
 	getSalesReport: (params?: any) => api.get('/admin/reports/sales', { params }),
-	getTopItems: (params?: any) =>
-		api.get('/admin/reports/top-items', { params }),
+	getTopItems: () => api.get('/admin/reports/top-items'),
 	getAllStaff: () => api.get('/admin/staff'),
 	updateStaffRole: (id: string, data: any) =>
 		api.put(`/admin/staff/${id}`, data),
+	getActiveStaff: () => api.get('/admin/staff', { params: '?isActive=true' }),
 };

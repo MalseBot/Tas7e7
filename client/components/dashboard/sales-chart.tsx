@@ -4,21 +4,37 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { adminService } from '@/lib/api/services';
+import { useQuery } from '@tanstack/react-query';
+import { parse, format } from 'date-fns';
 
+interface salesData {
+	averageOrderValue: number;
+	totalOrders: number;
+	totalRevenue: number;
+	_id: { day: number; month: number; year: number };
+}
 export function SalesChart() {
+	const {
+		data: stats,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ['sales-report'],
+		queryFn: () => adminService.getSalesReport(),
+	});
 	// This is a simple placeholder chart
-	const salesData = [
-		{ day: 'Mon', sales: 420 },
-		{ day: 'Tue', sales: 580 },
-		{ day: 'Wed', sales: 510 },
-		{ day: 'Thu', sales: 690 },
-		{ day: 'Fri', sales: 920 },
-		{ day: 'Sat', sales: 1050 },
-		{ day: 'Sun', sales: 870 },
-	];
-
-	const maxSales = Math.max(...salesData.map((d) => d.sales));
-
+ console.log(stats);
+ 
+	if (isLoading) {
+		return <div>Loading sales data...</div>;
+	}
+	if (error) {
+		return <div>Error loading sales data: {error.message}</div>;
+	}
+	const salesData = stats?.data.data;
+	const maxSales = Math.max(...salesData.map((e:salesData) => e.totalRevenue));
+	console.log(maxSales);
 	return (
 		<Card>
 			<CardHeader>
@@ -26,27 +42,34 @@ export function SalesChart() {
 			</CardHeader>
 			<CardContent>
 				<div className='h-64 flex items-end justify-between gap-2'>
-					{salesData.map((data) => {
-						const height = (data.sales / maxSales) * 100;
+					 {salesData.map((data:salesData) => {
+						const height = (data.totalOrders / maxSales)  * 100;						
+						const dateString = `${data._id.day}/${data._id.month}/${data._id.year}`;
+						const date = parse(dateString, 'dd/MM/yyyy', new Date());
+						const dayName = format(date, 'EEEE');
 						return (
 							<div
-								key={data.day}
+								key={dayName}
 								className='flex flex-col items-center flex-1'>
-								<div
-									className='w-full bg-primary/20 rounded-t-lg transition-all hover:bg-primary/30'
-									style={{ height: `${height}%` }}>
+								<div className='relative w-full bg-primary/20 rounded-t-lg transition-all h-40 hover:bg-primary/30'>
 									<div
-										className='bg-primary rounded-t-lg'
-										style={{ height: '70%' }}
+										className='absolute bottom-0 w-full bg-primary rounded-t-lg transition-all group-hover:bg-primary/90'
+										style={{
+											height: `${height}%`,
+											minHeight: '1px', 
+										}}
 									/>
 								</div>
-								<span className='mt-2 text-sm font-medium'>{data.day}</span>
+								<span className='mt-2 text-sm font-medium'>{dayName}</span>
 								<span className='text-xs text-muted-foreground'>
-									${data.sales}
+									${data.totalRevenue}
+								</span>
+								<span className='text-xs text-gray-500 mt-1'>
+									{data.totalOrders} orders
 								</span>
 							</div>
 						);
-					})}
+					})} 
 				</div>
 			</CardContent>
 		</Card>

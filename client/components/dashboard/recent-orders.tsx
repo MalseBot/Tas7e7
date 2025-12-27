@@ -6,52 +6,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight } from 'lucide-react';
+import { Order } from '@/types';
 
 interface RecentOrdersProps {
-	orders?: any[];
+	orders?: Order[];
 }
 
 export function RecentOrders({ orders }: RecentOrdersProps) {
-	// Sample data if no orders from API
-	const sampleOrders = [
-		{
-			orderNumber: 'ORD-123456',
-			customer: 'John Doe',
-			total: 32.5,
-			status: 'paid',
-			time: '10:30 AM',
-		},
-		{
-			orderNumber: 'ORD-123455',
-			customer: 'Jane Smith',
-			total: 45.75,
-			status: 'preparing',
-			time: '10:15 AM',
-		},
-		{
-			orderNumber: 'ORD-123454',
-			customer: 'Bob Johnson',
-			total: 18.25,
-			status: 'pending',
-			time: '10:00 AM',
-		},
-		{
-			orderNumber: 'ORD-123453',
-			customer: 'Alice Brown',
-			total: 67.8,
-			status: 'ready',
-			time: '9:45 AM',
-		},
-		{
-			orderNumber: 'ORD-123452',
-			customer: 'Charlie Wilson',
-			total: 28.95,
-			status: 'paid',
-			time: '9:30 AM',
-		},
-	];
+	
 
-	const displayOrders = orders || sampleOrders;
+	const displayOrders = orders ;
+	
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -78,14 +43,14 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
 			</CardHeader>
 			<CardContent>
 				<div className='space-y-4'>
-					{displayOrders.slice(0, 5).map((order) => (
+					{displayOrders?.map((order) => (
 						<div
 							key={order.orderNumber}
 							className='flex items-center justify-between py-2'>
 							<div>
 								<p className='font-medium'>{order.orderNumber}</p>
 								<p className='text-sm text-muted-foreground'>
-									{order.customer}
+									{order?.customerName}
 								</p>
 							</div>
 							<div className='text-right'>

@@ -28,7 +28,7 @@ const adminController = {
 				}),
 
 				// Today's revenue
-				aggregate([
+				Order.aggregate([
 					{
 						$match: {
 							createdAt: { $gte: today, $lt: tomorrow },
@@ -47,7 +47,7 @@ const adminController = {
 				Order.countDocuments(),
 
 				// Total revenue
-				aggregate([
+				Order.aggregate([
 					{
 						$match: { paymentStatus: 'paid' },
 					},
@@ -116,7 +116,7 @@ const adminController = {
 				};
 			}
 
-			const report = await aggregate([
+			const report = await Order.aggregate([
 				{ $match: matchStage },
 				{
 					$group: {
@@ -151,7 +151,7 @@ const adminController = {
 				if (endDate) matchStage.createdAt.$lte = new Date(endDate);
 			}
 
-			const topItems = await aggregate([
+			const topItems = await Order.aggregate([
 				{ $match: matchStage },
 				{ $unwind: '$items' },
 				{
@@ -171,7 +171,7 @@ const adminController = {
 			]);
 
 			// Populate menu item details
-			const populatedItems = await populate(topItems, {
+			const populatedItems = await MenuItem.populate(topItems, {
 				path: '_id',
 				select: 'name category',
 			});
@@ -188,7 +188,7 @@ const adminController = {
 	// Staff management
 	getAllStaff: async (req, res, next) => {
 		try {
-			const staff = await find().select('-password -pin');
+			const staff = await User.find().select('-password -pin');
 
 			res.status(200).json({
 				success: true,
@@ -205,7 +205,7 @@ const adminController = {
 		try {
 			const { role, isActive } = req.body;
 
-			const user = await findById(req.params.id);
+			const user = await User.findById(req.params.id);
 
 			if (!user) {
 				return res.status(404).json({
