@@ -188,7 +188,9 @@ const adminController = {
 	// Staff management
 	getAllStaff: async (req, res, next) => {
 		try {
-			const staff = await User.find().select('-password -pin');
+			const staff = await User.find({
+				role: { $in: ['cashier', 'manager', 'admin'] },
+			}).select('-password -pin');
 
 			res.status(200).json({
 				success: true,
@@ -200,28 +202,203 @@ const adminController = {
 		}
 	},
 
-	// Update staff role
-	updateStaffRole: async (req, res, next) => {
+	// Get single staff member
+	getStaffById: async (req, res, next) => {
 		try {
-			const { role, isActive } = req.body;
+			const staff = await User.findById(req.params.id).select('-password -pin');
 
-			const user = await User.findById(req.params.id);
-
-			if (!user) {
+			if (!staff) {
 				return res.status(404).json({
 					success: false,
 					error: 'Staff member not found',
 				});
 			}
 
-			if (role) user.role = role;
-			if (isActive !== undefined) user.isActive = isActive;
+			res.status(200).json({
+				success: true,
+				data: staff,
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
 
-			await user.save();
+	// Register new staff
+	registerStaff: async (req, res, next) => {
+		try {
+			const { name, email, password, role, pin } = req.body;
+
+			// Check if user already exists
+			const existingUser = await User.findOne({ email });
+			if (existingUser) {
+				return res.status(400).json({
+					success: false,
+					error: 'User already exists with this email',
+				});
+			}
+
+			// Create user
+			const user = await User.create({
+				name,
+				email,
+				password,
+				role: role || 'cashier',
+				pin: pin || '0000',
+				isActive: true,
+			});
+
+			// Remove password from response
+			const userResponse = user.toObject();
+			delete userResponse.password;
+			delete userResponse.pin;
+
+			res.status(201).json({
+				success: true,
+				message: 'Staff member created successfully',
+				data: userResponse,
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+
+	// Update staff role/status
+	updateStaff: async (req, res, next) => {
+		try {
+			const { role, isActive, name, email } = req.body;
+			const staffId = req.params.id;
+
+			// Check if staff exists
+			const staff = await User.findById(staffId);
+			if (!staff) {
+				return res.status(404).json({
+					success: false,
+					error: 'Staff member not found',
+				});
+			}
+
+			// Prevent updating own role/status
+			if (staffId === req.user.id) {
+				return res.status(400).json({
+					success: false,
+					error: 'Cannot update your own account',
+				});
+			}
+
+			// Update fields
+			if (name) staff.name = name;
+			if (email) staff.email = email;
+			if (role) staff.role = role;
+			if (isActive !== undefined) staff.isActive = isActive;
+
+			await staff.save();
+
+			// Remove sensitive data
+			const staffResponse = staff.toObject();
+			delete staffResponse.password;
+			delete staffResponse.pin;
 
 			res.status(200).json({
 				success: true,
-				data: user,
+				message: 'Staff updated successfully',
+				data: staffResponse,
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+
+	// Delete staff member
+	deleteStaff: async (req, res, next) => {
+		try {
+			const staffId = req.params.id;
+
+			// Prevent deleting self
+			if (staffId === req.user.id) {
+				return res.status(400).json({
+					success: false,
+					error: 'Cannot delete your own account',
+				});
+			}
+
+			const staff = await User.findByIdAndDelete(staffId);
+
+			if (!staff) {
+				return res.status(404).json({
+					success: false,
+					error: 'Staff member not found',
+				});
+			}
+
+			res.status(200).json({
+				success: true,
+				message: 'Staff member deleted successfully',
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+
+	// Reset staff PIN
+	resetStaffPIN: async (req, res, next) => {
+		try {
+			const { pin } = req.body;
+			const staffId = req.params.id;
+
+			const staff = await User.findById(staffId);
+			if (!staff) {
+				return res.status(404).json({
+					success: false,
+					error: 'Staff member not found',
+				});
+			}
+
+			staff.pin = pin || '0000';
+			await staff.save();
+
+			res.status(200).json({
+				success: true,
+				message: 'PIN reset successfully',
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+
+	// Staff statistics
+	getStaffStats: async (req, res, next) => {
+		try {
+			const stats = await User.aggregate([
+				{
+					$group: {
+						_id: '$role',
+						count: { $sum: 1 },
+						active: {
+							$sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] },
+						},
+					},
+				},
+				{
+					$project: {
+						role: '$_id',
+						count: 1,
+						active: 1,
+						inactive: { $subtract: ['$count', '$active'] },
+					},
+				},
+			]);
+
+			const totalStaff = await User.countDocuments();
+			const activeStaff = await User.countDocuments({ isActive: true });
+
+			res.status(200).json({
+				success: true,
+				data: {
+					stats,
+					total: totalStaff,
+					active: activeStaff,
+					inactive: totalStaff - activeStaff,
+				},
 			});
 		} catch (error) {
 			next(error);

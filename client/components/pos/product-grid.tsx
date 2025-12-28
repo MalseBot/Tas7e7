@@ -29,7 +29,7 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 	const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
 	// Flatten menu if it's grouped by category
-	const menuArray = Array.isArray(menu) ? menu : Object.values(menu).flat();
+	const menuArray =menu !== null &&menu !== undefined ? Array.isArray(menu) ? menu : Object.values(menu).flat(): []
 
 	// Get unique categories
 	const categories = [

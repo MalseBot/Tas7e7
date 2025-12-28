@@ -6,6 +6,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/providers';
+import { NotificationProvider } from '@/lib/constants/notification-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,8 +26,10 @@ export default function RootLayout({
 			suppressHydrationWarning>
 			<body className={inter.className}>
 				<Providers>
-					{children}
-					<Toaster />
+					<NotificationProvider>
+						{children}
+						<Toaster />
+					</NotificationProvider>
 				</Providers>
 			</body>
 		</html>

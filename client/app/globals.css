@@ -1,26 +1,27 @@
 /** app/globals.css - Tailwind v4 with @tailwindcss/postcss */
 @import "tailwindcss";
+/*---break--- */
+@custom-variant dark (&:is(.dark *));
 
-@theme {
-  /* Define ALL your theme variables here */
+/* Define CSS variables for light mode */
+:root {
+  /* Your color palette */
   --color-primary: #628141;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #8BAE66;
-  --color-secondary-foreground: #1B211A;
+  --color-primary-light: #8BAE66;
+  --color-primary-dark: #4A6B31;
+  --color-secondary: #EBD5AB;
+  --color-secondary-light: #F5E8C9;
+  --color-secondary-dark: #D4BC8A;
   --color-background: #EBD5AB;
   --color-foreground: #1B211A;
-  --color-card: #ffffff;
-  --color-card-foreground: #1B211A;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #1B211A;
-  --color-muted: #EBD5AB;
-  --color-muted-foreground: #628141;
+  --color-muted: #8BAE66;
+  --color-muted-foreground: #4A6B31;
   --color-accent: #8BAE66;
   --color-accent-foreground: #1B211A;
-  --color-destructive: #d4183d;
+  --color-destructive: #EF4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: rgba(27, 33, 26, 0.15);
-  --color-input: transparent;
+  --color-border: rgba(27, 33, 26, 0.2);
+  --color-input: #ffffff;
   --color-ring: #628141;
   
   /* Chart colors */
@@ -28,57 +29,309 @@
   --color-chart-2: #8BAE66;
   --color-chart-3: #EBD5AB;
   --color-chart-4: #1B211A;
-  --color-chart-5: #a3c584;
+  --color-chart-5: #9CAF88;
+  
+  /* Status colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
   
   /* Border radius */
   --radius: 0.625rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* Define CSS variables for dark mode */
+.dark {
+  --color-primary: #8BAE66;
+  --color-primary-light: #A3C584;
+  --color-primary-dark: #628141;
+  --color-secondary: #1B211A;
+  --color-secondary-light: #2A3129;
+  --color-secondary-dark: #121612;
+  --color-background: #1B211A;
+  --color-foreground: #EBD5AB;
+  --color-muted: #2A3129;
+  --color-muted-foreground: #8BAE66;
+  --color-accent: #628141;
+  --color-accent-foreground: #EBD5AB;
+  --color-destructive: #F87171;
+  --color-destructive-foreground: #1B211A;
+  --color-border: rgba(235, 213, 171, 0.2);
+  --color-input: #2A3129;
+  --color-ring: #8BAE66;
+  
+  /* Dark mode chart colors */
+  --color-chart-1: #8BAE66;
+  --color-chart-2: #628141;
+  --color-chart-3: #2A3129;
+  --color-chart-4: #EBD5AB;
+  --color-chart-5: #728C5E;
+}
+
+/* Now define the @theme block with references to CSS variables */
+@theme {
+  /* Map Tailwind colors to our CSS variables */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  
+  --color-card: var(--color-secondary);
+  --color-card-foreground: var(--color-foreground);
+  
+  --color-popover: var(--color-secondary);
+  --color-popover-foreground: var(--color-foreground);
+  
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-secondary);
+  
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-foreground);
+  
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  
+  --color-border: var(--color-border);
+  --color-input: var(--color-input);
+  --color-ring: var(--color-ring);
+  
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+  --color-chart-5: var(--color-chart-5);
+  
+  /* Border radius */
+  --radius: var(--radius);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   
-  /* Dark mode colors */
-  /* .dark {
-    --color-background: #1B211A;
-    --color-foreground: #EBD5AB;
-    --color-card: #1B211A;
-    --color-card-foreground: #EBD5AB;
-    --color-popover: #1B211A;
-    --color-popover-foreground: #EBD5AB;
-    --color-primary: #8BAE66;
-    --color-primary-foreground: #1B211A;
-    --color-secondary: #628141;
-    --color-secondary-foreground: #EBD5AB;
-    --color-muted: #1B211A;
-    --color-muted-foreground: #8BAE66;
-    --color-accent: #628141;
-    --color-accent-foreground: #EBD5AB;
-    --color-destructive: #d4183d;
-    --color-destructive-foreground: #ffffff;
-    --color-border: rgba(235, 213, 171, 0.2);
-    --color-input: #1B211A;
-    --color-ring: #8BAE66;
-  } */
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-border);
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    color: var(--color-foreground);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--color-muted);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    border-radius: var(--radius);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+  }
+
+  /* Smooth transitions for theme change */
+  * {
+    transition: background-color 0.3s ease, 
+                border-color 0.3s ease, 
+                color 0.3s ease;
   }
 }
 
-
 @layer utilities {
-  /* Your gradient fix - MUST use this approach */
-  
   /* Typography utilities */
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Gradient utilities using your color palette */
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-light));
+  }
+  
+  .gradient-accent {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+  }
+  
+  .gradient-dark {
+    background: linear-gradient(135deg, var(--color-foreground), #121612);
+  }
+
+  /* Glass morphism effects */
+  .glass {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Shadow utilities */
+  .shadow-soft {
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark .shadow-soft {
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Custom animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/* Typography hierarchy */
+@layer base {
+  h1 {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: var(--color-foreground);
+  }
+
+  h2 {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--color-foreground);
+  }
+
+  h3 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-foreground);
+  }
+
+  h4 {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--color-foreground);
+  }
+
+  p {
+    font-size: 1rem; /* text-base */
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--color-foreground);
+  }
+
+  label {
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--color-foreground);
+  }
+
+  button {
+    font-size: 1rem; /* text-base */
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.025em;
+  }
+
+  input, textarea, select {
+    font-size: 1rem; /* text-base */
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-foreground);
+    background-color: var(--color-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s ease;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Links */
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: color-mix(in srgb, var(--color-primary) 80%, var(--color-foreground) 20%);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Code blocks */
+  code {
+    background-color: var(--color-muted);
+    color: var(--color-muted-foreground);
+    padding: 0.125rem 0.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-family: ui-monospace, monospace;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Disabled state */
+  :disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

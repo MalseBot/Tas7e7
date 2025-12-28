@@ -9,7 +9,7 @@ const kitchenController = {
 	getKitchenOrders: async (req, res, next) => {
 		try {
 			const orders = await Order.find({
-				status: { $in: ['pending', 'confirmed', 'preparing'] },
+				status: { $in: ['pending', 'confirmed', 'preparing','ready'] },
 			})
 				.populate('items.menuItem', 'name preparationTime category')
 				.sort({ createdAt: 1 });

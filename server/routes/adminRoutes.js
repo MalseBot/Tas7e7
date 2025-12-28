@@ -17,21 +17,13 @@ router.get('/reports/sales', getSalesReport);
 router.get('/reports/top-items', getTopSellingItems);
 
 // Staff management
-router.get('/staff', getAllStaff);
-router.put('/staff/:id', updateStaffRole);
-
-// Settings (placeholder)
-// router.get('/settings', (req, res) => {
-// 	res.json({
-// 		success: true,
-// 		data: {
-// 			cafeName: 'My Café',
-// 			taxRate: 13,
-// 			currency: 'USD',
-// 			openingHours: '08:00',
-// 			closingHours: '22:00',
-// 		},
-// 	});
-// });
+// Staff management routes
+router.get('/staff', adminController.getAllStaff);
+router.get('/staff/stats', adminController.getStaffStats);
+router.get('/staff/:id', adminController.getStaffById);
+router.post('/staff', adminController.registerStaff);
+router.put('/staff/:id', adminController.updateStaff);
+router.delete('/staff/:id', adminController.deleteStaff);
+router.put('/staff/:id/reset-pin', adminController.resetStaffPIN);
 
 export default router;

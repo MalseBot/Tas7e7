@@ -3,60 +3,93 @@
 // components/pos/tables-view.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { tableService } from '@/lib/api/services';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check } from 'lucide-react';
+import { Check, RefreshCw, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+
+interface Table {
+	_id: string;
+	tableNumber: string;
+	capacity: number;
+	status: 'available' | 'occupied' | 'reserved' | 'cleaning';
+	location: string;
+	currentOrder?: string;
+}
 
 interface TablesViewProps {
-	tables?: any[];
 	selectedTable: string;
 	onSelectTable: (tableNumber: string) => void;
 }
 
-export function TablesView({
-	tables,
-	selectedTable,
-	onSelectTable,
-}: TablesViewProps) {
-	// Sample tables if none from API
-	const sampleTables = [
-		{
-			tableNumber: 'T1',
-			capacity: 2,
-			status: 'available',
-			location: 'indoors',
-		},
-		{ tableNumber: 'T2', capacity: 2, status: 'occupied', location: 'indoors' },
-		{
-			tableNumber: 'T3',
-			capacity: 4,
-			status: 'available',
-			location: 'indoors',
-		},
-		{ tableNumber: 'T4', capacity: 4, status: 'reserved', location: 'indoors' },
-		{
-			tableNumber: 'T5',
-			capacity: 6,
-			status: 'available',
-			location: 'indoors',
-		},
-		{
-			tableNumber: 'T6',
-			capacity: 4,
-			status: 'cleaning',
-			location: 'outdoors',
-		},
-		{
-			tableNumber: 'T7',
-			capacity: 4,
-			status: 'available',
-			location: 'outdoors',
-		},
-		{ tableNumber: 'Bar1', capacity: 1, status: 'available', location: 'bar' },
-		{ tableNumber: 'Bar2', capacity: 1, status: 'occupied', location: 'bar' },
-	];
+export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
+	const queryClient = useQueryClient();
+	const [showAddDialog, setShowAddDialog] = useState(false);
+	const [newTableData, setNewTableData] = useState({
+		tableNumber: '',
+		capacity: 4,
+		location: 'main',
+		status: 'available' as const,
+	});
 
-	const displayTables = tables || sampleTables;
+	// Fetch tables from API
+	const {
+		data: tablesData,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({
+		queryKey: ['tables'],
+		queryFn: () => tableService.getTables(),
+		select: (data) => data.data.data,
+	});
+
+	// Create table mutation
+	const createTableMutation = useMutation({
+		mutationFn: (data: any) => tableService.createTable(data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['tables'] });
+			setShowAddDialog(false);
+			setNewTableData({
+				tableNumber: '',
+				capacity: 4,
+				location: 'main',
+				status: 'available',
+			});
+		},
+	});
+
+	// Update table status mutation
+	const updateTableStatusMutation = useMutation({
+		mutationFn: ({ id, status }: { id: string; status: string }) =>
+			tableService.updateTableStatus(id, status),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['tables'] });
+		},
+	});
+
+	const tables = tablesData || [];
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -88,68 +121,344 @@ export function TablesView({
 		}
 	};
 
+	const handleTableClick = (table: Table) => {
+		if (table.status === 'available') {
+			onSelectTable(table.tableNumber);
+		}
+	};
+
+	const handleStatusChange = (tableId: string, currentStatus: string) => {
+		const newStatus = currentStatus === 'occupied' ? 'available' : 'occupied';
+		updateTableStatusMutation.mutate({ id: tableId, status: newStatus });
+	};
+
+	const handleAddTable = () => {
+		if (!newTableData.tableNumber.trim()) return;
+		createTableMutation.mutate(newTableData);
+	};
+
+	// Group tables by location for better organization
+	const tablesByLocation = tables.reduce(
+		(acc: Record<string, Table[]>, table:any) => {
+			if (!acc[table.location]) {
+				acc[table.location] = [];
+			}
+			acc[table.location].push(table);
+			return acc;
+		},
+		{}
+	);
+
+	// Sort tables by number
+	const sortedTables = Object.keys(tablesByLocation).reduce(
+		(acc: Record<string, Table[]>, location) => {
+			acc[location] = tablesByLocation[location].sort((a:any, b:any) => {
+				// Extract numbers from table numbers for proper sorting
+				const numA = parseInt(a.tableNumber.replace(/\D/g, '')) || 0;
+				const numB = parseInt(b.tableNumber.replace(/\D/g, '')) || 0;
+				return numA - numB;
+			});
+			return acc;
+		},
+		{}
+	);
+
+	if (isLoading) {
+		return (
+			<Card>
+				<CardContent className='p-6'>
+					<div className='flex items-center justify-center h-48'>
+						<RefreshCw className='w-6 h-6 animate-spin' />
+						<span className='ml-2'>Loading tables...</span>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (error) {
+		return (
+			<Card>
+				<CardContent className='p-6'>
+					<div className='text-center py-8'>
+						<div className='text-red-500 mb-4'>Failed to load tables</div>
+						<Button
+							onClick={() => refetch()}
+							variant='outline'>
+							<RefreshCw className='w-4 h-4 mr-2' />
+							Retry
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
-		<Card>
-			<CardContent className='p-6'>
-				<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
-					{displayTables.map((table) => {
-						const isSelected = selectedTable === table.tableNumber;
-						const isAvailable = table.status === 'available';
-
-						return (
-							<button
-								key={table.tableNumber}
-								onClick={() => isAvailable && onSelectTable(table.tableNumber)}
-								className={`
-                  relative aspect-square rounded-xl p-4 flex flex-col items-center justify-center
-                  border-2 transition-all
-                  ${
-										isSelected ?
-											'border-primary bg-primary/10'
-										:	'border-border hover:border-primary/50'
-									}
-                  ${!isAvailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
-                `}>
-								{/* Status indicator */}
-								<div className='absolute top-2 right-2'>
-									<div
-										className={`w-3 h-3 rounded-full ${getStatusColor(table.status)}`}
-									/>
-								</div>
-
-								{/* Table number */}
-								<div className='text-2xl font-bold mb-2'>
-									{table.tableNumber}
-								</div>
-
-								{/* Capacity */}
-								<div className='text-sm text-muted-foreground mb-1'>
-									{table.capacity} seats
-								</div>
-
-								{/* Status */}
-								<Badge
-									variant={isAvailable ? 'outline' : 'secondary'}
-									className='text-xs'>
-									{getStatusText(table.status)}
-								</Badge>
-
-								{/* Location */}
-								<div className='absolute bottom-2 text-xs text-muted-foreground'>
-									{table.location}
-								</div>
-
-								{/* Selected checkmark */}
-								{isSelected && (
-									<div className='absolute top-2 left-2 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center'>
-										<Check className='w-4 h-4' />
+		<>
+			<Card className=''>
+				<CardContent className='p-6 '>
+					<div className='flex items-center justify-between mb-4'>
+						<div>
+							<h3 className='text-lg font-semibold'>Tables</h3>
+							<p className='text-sm text-muted-foreground'>
+								{tables.length} tables •{' '}
+								{tables.filter((t:any) => t.status === 'available').length}{' '}
+								available
+							</p>
+						</div>
+						<div className='flex gap-2'>
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() => refetch()}
+								disabled={isLoading}>
+								<RefreshCw
+									className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+							</Button>
+							<Dialog
+								open={showAddDialog}
+								onOpenChange={setShowAddDialog}>
+								<DialogTrigger asChild>
+									<Button size='sm'>
+										<Plus className='w-4 h-4 mr-1' />
+										Add Table
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Add New Table</DialogTitle>
+										<DialogDescription>
+											Create a new table for your café
+										</DialogDescription>
+									</DialogHeader>
+									<div className='space-y-4 py-4'>
+										<div className='space-y-2'>
+											<Label htmlFor='tableNumber'>Table Number *</Label>
+											<Input
+												id='tableNumber'
+												value={newTableData.tableNumber}
+												onChange={(e) =>
+													setNewTableData({
+														...newTableData,
+														tableNumber: e.target.value,
+													})
+												}
+												placeholder='T1, T2, etc.'
+											/>
+										</div>
+										<div className='grid grid-cols-2 gap-4'>
+											<div className='space-y-2'>
+												<Label htmlFor='capacity'>Capacity</Label>
+												<Select
+													value={newTableData.capacity.toString()}
+													onValueChange={(value) =>
+														setNewTableData({
+															...newTableData,
+															capacity: parseInt(value),
+														})
+													}>
+													<SelectTrigger>
+														<SelectValue placeholder='Select capacity' />
+													</SelectTrigger>
+													<SelectContent>
+														{[2, 4, 6, 8, 10].map((num) => (
+															<SelectItem
+																key={num}
+																value={num.toString()}>
+																{num} seats
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											</div>
+											<div className='space-y-2'>
+												<Label htmlFor='location'>Location</Label>
+												<Select
+													value={newTableData.location}
+													onValueChange={(value) =>
+														setNewTableData({
+															...newTableData,
+															location: value,
+														})
+													}>
+													<SelectTrigger>
+														<SelectValue placeholder='Select location' />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value='main'>Main Hall</SelectItem>
+														<SelectItem value='terrace'>Terrace</SelectItem>
+														<SelectItem value='private'>
+															Private Room
+														</SelectItem>
+														<SelectItem value='bar'>Bar Area</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='status'>Initial Status</Label>
+											<Select
+												value={newTableData.status}
+												onValueChange={(value: any) =>
+													setNewTableData({ ...newTableData, status: value })
+												}>
+												<SelectTrigger>
+													<SelectValue placeholder='Select status' />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value='available'>Available</SelectItem>
+													<SelectItem value='cleaning'>Cleaning</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
 									</div>
-								)}
-							</button>
-						);
-					})}
-				</div>
-			</CardContent>
-		</Card>
+									<DialogFooter>
+										<Button
+											variant='outline'
+											onClick={() => setShowAddDialog(false)}>
+											Cancel
+										</Button>
+										<Button
+											onClick={handleAddTable}
+											disabled={
+												!newTableData.tableNumber.trim() ||
+												createTableMutation.isPending
+											}>
+											{createTableMutation.isPending ?
+												'Creating...'
+											:	'Create Table'}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</div>
+					</div>
+
+					{Object.keys(sortedTables).map((location) => (
+						<div
+							key={location}
+							className='mb-6 last:mb-0 '>
+							<div className='flex items-center mb-3'>
+								<h4 className='font-medium text-sm text-muted-foreground uppercase tracking-wide'>
+									{location === 'main' && 'Main Hall'}
+									{location === 'terrace' && 'Terrace'}
+									{location === 'private' && 'Private Room'}
+									{location === 'bar' && 'Bar Area'}
+									{!['main', 'terrace', 'private', 'bar'].includes(location) &&
+										location}
+								</h4>
+								<div className='ml-2 flex gap-1'>
+									<Badge
+										variant='outline'
+										className='text-xs'>
+										{sortedTables[location].length} tables
+									</Badge>
+									<Badge
+										variant='secondary'
+										className='text-xs'>
+										{
+											sortedTables[location].filter(
+												(t) => t.status === 'available'
+											).length
+										}{' '}
+										available
+									</Badge>
+								</div>
+							</div>
+
+							<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3'>
+								{sortedTables[location].map((table: Table) => {
+									const isSelected = selectedTable === table.tableNumber;
+									const isAvailable = table.status === 'available';
+
+									return (
+										<div
+											key={table._id}
+											className={`
+                        relative aspect-square rounded-xl p-3 flex flex-col items-center justify-center
+                        border-2 transition-all group
+                        ${isSelected ? 'border-primary bg-primary/10' : 'border-border'}
+                        ${!isAvailable ? 'opacity-80' : ''}
+                      `}>
+											{/* Status indicator */}
+											<div className='absolute top-2 right-2'>
+												<div
+													className={`w-3 h-3 rounded-full ${getStatusColor(table.status)}`}
+													title={getStatusText(table.status)}
+												/>
+											</div>
+
+											{/* Table number */}
+											<div className='text-xl font-bold mb-1'>
+												{table.tableNumber}
+											</div>
+
+											{/* Capacity */}
+											<div className='text-xs text-muted-foreground mb-1'>
+												{table.capacity} seats
+											</div>
+
+											{/* Status badge */}
+											<Badge
+												variant={isAvailable ? 'outline' : 'secondary'}
+												className='text-xs mb-2'>
+												{getStatusText(table.status)}
+											</Badge>
+
+											{/* Action buttons */}
+											<div className='absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center gap-1'>
+												<Button
+													size='sm'
+													variant={isAvailable ? 'default' : 'outline'}
+													className='h-6 text-xs'
+													onClick={() => handleTableClick(table)}
+													disabled={!isAvailable}>
+													{isSelected ? 'Selected' : 'Select'}
+												</Button>
+												<Button
+													size='sm'
+													variant='outline'
+													className='h-6 text-xs'
+													onClick={() =>
+														handleStatusChange(table._id, table.status)
+													}
+													disabled={updateTableStatusMutation.isPending}>
+													{table.status === 'occupied' ? 'Free' : 'Occupy'}
+												</Button>
+											</div>
+
+											{/* Selected checkmark */}
+											{isSelected && (
+												<div className='absolute top-2 left-2 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center'>
+													<Check className='w-3 h-3' />
+												</div>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					))}
+
+					{tables.length === 0 && (
+						<div className='text-center py-12'>
+							<div className='mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4'>
+								<Plus className='w-6 h-6 text-muted-foreground' />
+							</div>
+							<h4 className='font-medium mb-2'>No tables found</h4>
+							<p className='text-sm text-muted-foreground mb-4'>
+								Create your first table to start taking orders
+							</p>
+							<Button onClick={() => setShowAddDialog(true)}>
+								<Plus className='w-4 h-4 mr-2' />
+								Add First Table
+							</Button>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+		</>
 	);
 }

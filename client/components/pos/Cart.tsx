@@ -3,11 +3,12 @@
 // components/pos/cart.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus, ShoppingCart, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '../ui/input';
 
 interface CartItem {
 	menuItem: string;
@@ -20,7 +21,8 @@ interface CartProps {
 	items: CartItem[];
 	selectedTable: string;
 	onUpdateQuantity: (itemId: string, quantity: number) => void;
-	onCheckout: () => void;
+	onCheckout: (orderData: { tableNumber: string; items: CartItem[] }) => void;
+	onTableChange: (tableNumber: string) => void; // NEW: Add this prop
 }
 
 export function Cart({
@@ -28,8 +30,16 @@ export function Cart({
 	selectedTable,
 	onUpdateQuantity,
 	onCheckout,
+	onTableChange, // NEW: Accept table change handler
 }: CartProps) {
 	const [isCollapsed, setIsCollapsed] = useState(false);
+	const [orderTable, setOrderTable] = useState(selectedTable);
+	const [isTakeaway, setIsTakeaway] = useState(false);
+
+	// Update local state when selectedTable prop changes
+	useEffect(() => {
+		setOrderTable(selectedTable);
+	}, [selectedTable]);
 
 	const subtotal = items.reduce(
 		(sum, item) => sum + item.price * item.quantity,
@@ -37,6 +47,35 @@ export function Cart({
 	);
 	const tax = subtotal * 0.13; // 13% tax
 	const total = subtotal + tax;
+
+	const handleTableChange = (value: string) => {
+		setOrderTable(value);
+		onTableChange(value); // Notify parent of table change
+	};
+
+	const handleTakeaway = () => {
+		const takeawayValue = 'Takeaway';
+		setOrderTable(takeawayValue);
+		setIsTakeaway(!isTakeaway);
+		onTableChange(takeawayValue);
+	};
+
+	const handleTableInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		handleTableChange(value);
+		setIsTakeaway(value === 'Takeaway');
+	};
+
+	const handleCheckout = () => {
+		// Prepare order data
+		const orderData = {
+			tableNumber: orderTable || 'Takeaway',
+			items: items,
+		};
+
+		// Call parent checkout handler with order data
+		onCheckout(orderData);
+	};
 
 	if (isCollapsed) {
 		return (
@@ -60,6 +99,13 @@ export function Cart({
 				<CardTitle className='flex items-center gap-2'>
 					<ShoppingCart className='w-5 h-5' />
 					Current Order
+					{orderTable && (
+						<Badge
+							variant={isTakeaway ? 'secondary' : 'default'}
+							className='ml-2'>
+							{orderTable}
+						</Badge>
+					)}
 				</CardTitle>
 				<Button
 					variant='ghost'
@@ -135,20 +181,28 @@ export function Cart({
 					{/* Table Selection */}
 					<div className='mb-4'>
 						<label className='block text-sm font-medium text-foreground mb-2'>
-							Table
+							Table Number
 						</label>
 						<div className='flex gap-2'>
-							<input
+							<Input
 								type='text'
-								value={selectedTable}
-								onChange={(e) => {
-									/* Handle table change */
-								}}
-								placeholder='Table number'
+								value={orderTable === 'Takeaway' ? '' : orderTable}
+								onChange={handleTableInputChange}
+								placeholder='Enter table number (e.g., T1, T2)'
 								className='flex-1 px-3 py-2 border rounded-lg'
+								disabled={isTakeaway}
 							/>
-							<Button variant='outline'>Takeaway</Button>
+							<Button
+								variant={isTakeaway ? 'default' : 'outline'}
+								onClick={handleTakeaway}>
+								{isTakeaway ? '✓ Takeaway' : 'Takeaway'}
+							</Button>
 						</div>
+						{isTakeaway && (
+							<p className='text-xs text-muted-foreground mt-2'>
+								Order set as Takeaway
+							</p>
+						)}
 					</div>
 
 					{/* Totals */}
@@ -170,9 +224,11 @@ export function Cart({
 					<Button
 						className='w-full'
 						size='lg'
-						onClick={onCheckout}
-						disabled={items.length === 0}>
-						Proceed to Checkout
+						onClick={handleCheckout}
+						disabled={items.length === 0 || (!orderTable && !isTakeaway)}>
+						{orderTable === 'Takeaway' ?
+							'Checkout Takeaway'
+						:	`Checkout Table ${orderTable}`}
 					</Button>
 				</div>
 			)}

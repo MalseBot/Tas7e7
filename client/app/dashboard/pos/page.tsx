@@ -42,6 +42,10 @@ export default function POSPage() {
 		},
 	});
 
+	const handleTableChange = (tableNumber: string) => {
+		setSelectedTable(tableNumber);
+	};
+
 	const handleAddToCart = (item: any) => {
 		const existingItem = cart.find(
 			(cartItem) => cartItem.menuItem === item._id
@@ -66,6 +70,7 @@ export default function POSPage() {
 			]);
 		}
 	};
+console.log(menuData?.data.data);
 
 	const handleUpdateQuantity = (itemId: string, quantity: number) => {
 		if (quantity === 0) {
@@ -124,7 +129,7 @@ export default function POSPage() {
 							value='menu'
 							className='mt-4'>
 							<ProductGrid
-								menu={menuData?.data}
+								menu={menuData?.data.data}
 								onAddToCart={handleAddToCart}
 							/>
 						</TabsContent>
@@ -133,7 +138,6 @@ export default function POSPage() {
 							value='tables'
 							className='mt-4'>
 							<TablesView
-								tables={tablesData?.data}
 								selectedTable={selectedTable}
 								onSelectTable={setSelectedTable}
 							/>
@@ -146,6 +150,7 @@ export default function POSPage() {
 					<Cart
 						items={cart}
 						selectedTable={selectedTable}
+						onTableChange={handleTableChange}
 						onUpdateQuantity={handleUpdateQuantity}
 						onCheckout={() => setShowCheckout(true)}
 					/>

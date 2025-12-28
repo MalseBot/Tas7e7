@@ -22,6 +22,7 @@ import menuRoutes from './routes/menuRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import kitchenRoutes from './routes/kitchenRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 import connectDB from './config/db.js';
 
 // Initialize Express app
@@ -49,6 +50,8 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/kitchen', kitchenRoutes);
+app.use('/api/settings', settingsRoutes);
+
 
 // Welcome route
 app.get('/', (req, res) => {

@@ -19,6 +19,40 @@ export const authService = {
 	}) => api.post('/auth/register', data),
 };
 
+export const settingsService = {
+	// Get settings
+	getSettings: () => api.get('/settings'),
+
+	// Update settings
+	updateSettings: (data:any) => api.put('/settings', data),
+
+	// Reset settings
+	resetSettings: () => api.post('/settings/reset'),
+};
+
+export const staffService = {
+	// Get all staff
+	getStaff: () => api.get('/admin/staff'),
+
+	// Get staff stats
+	getStaffStats: () => api.get('/admin/staff/stats'),
+
+	// Get single staff member
+	getStaffById: (id:string) => api.get(`/admin/staff/${id}`),
+
+	// Create new staff
+	createStaff: (data:any) => api.post('/admin/staff', data),
+
+	// Update staff
+	updateStaff: (id:string, data:any) => api.put(`/admin/staff/${id}`, data),
+
+	// Delete staff
+	deleteStaff: (id:string) => api.delete(`/admin/staff/${id}`),
+
+	// Reset PIN
+	resetPIN: (id:string, data:any) => api.put(`/admin/staff/${id}/reset-pin`, data),
+};
+
 // Order Services
 export const orderService = {
 	getOrders: (params?: any) => api.get('/orders', { params }),

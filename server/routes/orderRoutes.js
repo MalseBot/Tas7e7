@@ -45,7 +45,7 @@ router.get(
 	authorize('cook', 'manager', 'admin'),
 	async (req, res) => {
 		// Get orders that need kitchen attention
-		const orders = await Order.find({
+		const orders = await orders.find({
 			status: { $in: ['pending', 'confirmed', 'preparing'] },
 			'items.menuItem': { $exists: true },
 		}).populate('items.menuItem');

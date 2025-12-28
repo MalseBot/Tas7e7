@@ -17,6 +17,8 @@ import {
 	Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { authService } from '@/lib/api/services';
 
 const menuItems = [
 	{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,22 +37,13 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
 	const pathname = usePathname();
+const { data: user } = useQuery({
+	queryKey: ['current-profile'],
+	queryFn: () => authService.getProfile(),
+});
 
 	return (
-		<aside className='h-full w-64 bg-card border-r border-border flex flex-col'>
-			{/* Logo */}
-			<div className='p-6 border-b border-border'>
-				<Link
-					href='/dashboard'
-					className='flex items-center gap-2'
-					onClick={onClose}>
-					<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
-						<Home className='w-5 h-5 text-white' />
-					</div>
-					<span className='text-xl font-bold text-foreground'>Café POS</span>
-				</Link>
-			</div>
-
+		<aside className='h-full w-64 bg-card border-r border-border flex flex-col justify-end'>
 			{/* Navigation */}
 			<nav className='flex-1 p-4'>
 				<ul className='space-y-2'>
@@ -86,8 +79,12 @@ export function Sidebar({ onClose }: SidebarProps) {
 						<Users className='w-5 h-5 text-muted-foreground' />
 					</div>
 					<div>
-						<p className='font-medium text-foreground'>John Cashier</p>
-						<p className='text-sm text-muted-foreground'>Cashier</p>
+						<p className='font-medium text-foreground'>
+							{user?.data.data.name}
+						</p>
+						<p className='text-sm text-muted-foreground'>
+							{user?.data.data.role}
+						</p>
 					</div>
 				</div>
 			</div>

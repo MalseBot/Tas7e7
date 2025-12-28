@@ -82,7 +82,7 @@ export default function LoginPage() {
 							<div className='relative'>
 								<Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground' />
 								<Input
-									type={isPinLogin ? 'text' : 'password'}
+									type={'password'}
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									className='w-80 pl-10 pr-4 py-3 bg-input-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent'
@@ -97,7 +97,7 @@ export default function LoginPage() {
 						<Button
 							type='button'
 							onClick={() => setIsPinLogin(!isPinLogin)}
-							className='text-sm text-primary hover:underline'>
+							className='text-sm text-primary-foreground '>
 							{isPinLogin ? 'Switch to Password Login' : 'Switch to PIN Login'}
 						</Button>
 
@@ -145,7 +145,7 @@ export default function LoginPage() {
 					{loginMutation.error && (
 						<div className='mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg'>
 							<p className='text-destructive text-sm'>
-								{loginMutation.error.response?.data?.error || 'Login failed'}
+								{loginMutation.error.message || 'Login failed'}
 							</p>
 						</div>
 					)}

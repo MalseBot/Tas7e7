@@ -60,7 +60,10 @@ export default function OrdersPage() {
 		return variants[status] || { variant: 'outline' as const, label: status };
 	};
 
-	const filteredOrders = orders?.data?.filter(
+	console.log(orders);
+	
+
+	const filteredOrders = orders?.data.data?.filter(
 		(order: any) =>
 			order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			order.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||

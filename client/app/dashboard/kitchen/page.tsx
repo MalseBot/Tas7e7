@@ -17,6 +17,9 @@ export default function KitchenPage() {
 		refetchInterval: 5000, // Auto-refresh every 5 seconds
 	});
 
+	console.log(orders);
+	
+
 	const startPrepMutation = useMutation({
 		mutationFn: (orderId: string) => kitchenService.startPreparation(orderId),
 		onSuccess: () => {
@@ -25,18 +28,14 @@ export default function KitchenPage() {
 	});
 
 	const markReadyMutation = useMutation({
-		mutationFn: (orderId: string) => kitchenService.markAsReady(orderId),
+		mutationFn: (orderId:string) => kitchenService.markAsReady(orderId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
 		},
 	});
 
-	const pendingOrders = orders?.data?.filter((order: any) =>
-		['pending', 'confirmed'].includes(order.status)
-	);
-	const preparingOrders = orders?.data?.filter(
-		(order: any) => order.status === 'preparing'
-	);
+	const pendingOrders = orders?.data?.data?.pending
+	const preparingOrders = orders?.data?.data?.preparing
 
 	return (
 		<div className='space-y-6'>
@@ -87,7 +86,7 @@ export default function KitchenPage() {
 						<h3 className='font-medium text-green-900'>Ready</h3>
 					</div>
 					<p className='text-2xl font-bold text-green-900'>
-						{orders?.data?.filter((o: any) => o.status === 'ready').length || 0}
+						{orders?.data?.data?.ready.length || 0}
 					</p>
 				</div>
 			</div>
@@ -106,6 +105,7 @@ export default function KitchenPage() {
 								key={order._id}
 								order={order}
 								onStartPrep={() => startPrepMutation.mutate(order._id)}
+								onMarkReady={()=>{}}
 								isLoading={
 									startPrepMutation.variables === order._id &&
 									startPrepMutation.isPending
@@ -132,6 +132,7 @@ export default function KitchenPage() {
 								key={order._id}
 								order={order}
 								onMarkReady={() => markReadyMutation.mutate(order._id)}
+								onStartPrep={()=>{}}
 								isLoading={
 									markReadyMutation.variables === order._id &&
 									markReadyMutation.isPending
