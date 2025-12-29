@@ -19,17 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '@/lib/api/services';
-
-const menuItems = [
-	{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-	{ href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart },
-	{ href: '/dashboard/kitchen', label: 'Kitchen', icon: ChefHat },
-	{ href: '/dashboard/orders', label: 'Orders', icon: Receipt },
-	{ href: '/dashboard/menu', label: 'Menu', icon: Package },
-	{ href: '/dashboard/staff', label: 'Staff', icon: Users },
-	{ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
-	{ href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 interface SidebarProps {
 	onClose?: () => void;
@@ -37,13 +27,24 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
 	const pathname = usePathname();
-const { data: user } = useQuery({
-	queryKey: ['current-profile'],
-	queryFn: () => authService.getProfile(),
-});
+	const { data: user } = useQuery({
+		queryKey: ['current-profile'],
+		queryFn: () => authService.getProfile(),
+	});
+	const { t } = useTranslation(); // Direct import
+
+	const menuItems = [
+		{ href: '/dashboard', label: t('dashboard.title'), icon: LayoutDashboard },
+		{ href: '/dashboard/pos', label: t('pos.title'), icon: ShoppingCart },
+		{ href: '/dashboard/kitchen', label: t('kitchen.title'), icon: ChefHat },
+		{ href: '/dashboard/orders', label: t('orders.title'), icon: Receipt },
+		{ href: '/dashboard/menu', label: t('menu.title'), icon: Package },
+		{ href: '/dashboard/staff', label: t('staff.title'), icon: Users },
+		{ href: '/dashboard/settings', label: t('settings.title'), icon: Settings },
+	];
 
 	return (
-		<aside className='h-full w-64 bg-card border-r border-border flex flex-col justify-end'>
+		<aside className={`h-full w-64 bg-card  border-border flex flex-col  border-s justify-start`}>
 			{/* Navigation */}
 			<nav className='flex-1 p-4'>
 				<ul className='space-y-2'>

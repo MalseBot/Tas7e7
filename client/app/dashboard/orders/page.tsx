@@ -34,8 +34,10 @@ import {
 	Receipt,
 	MoreHorizontal,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function OrdersPage() {
+	const { t } = useTranslation();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [dateFilter, setDateFilter] = useState('today');
 	const [statusFilter, setStatusFilter] = useState('all');
@@ -50,18 +52,41 @@ export default function OrdersPage() {
 
 	const getStatusBadge = (status: string) => {
 		const variants: Record<string, any> = {
-			pending: { variant: 'destructive' as const, label: 'Pending' },
-			preparing: { variant: 'secondary' as const, label: 'Preparing' },
-			ready: { variant: 'default' as const, label: 'Ready' },
-			served: { variant: 'default' as const, label: 'Served' },
-			paid: { variant: 'outline' as const, label: 'Paid' },
-			cancelled: { variant: 'destructive' as const, label: 'Cancelled' },
+			pending: { variant: 'destructive' as const, label: t('orders.pending') },
+			preparing: {
+				variant: 'secondary' as const,
+				label: t('orders.preparing'),
+			},
+			ready: { variant: 'default' as const, label: t('orders.ready') },
+			served: { variant: 'default' as const, label: t('orders.served') },
+			paid: { variant: 'outline' as const, label: t('orders.paid') },
+			cancelled: {
+				variant: 'destructive' as const,
+				label: t('orders.cancelled'),
+			},
 		};
 		return variants[status] || { variant: 'outline' as const, label: status };
 	};
 
-	console.log(orders);
-	
+	const getDateFilterText = (filter: string) => {
+		switch (filter) {
+			case 'today':
+				return t('orders.today');
+			case 'week':
+				return t('orders.thisWeek');
+			case 'month':
+				return t('orders.thisMonth');
+			case 'all':
+				return t('orders.allTime');
+			default:
+				return filter;
+		}
+	};
+
+	const getStatusFilterText = (filter: string) => {
+		if (filter === 'all') return t('orders.allStatus');
+		return getStatusBadge(filter).label;
+	};
 
 	const filteredOrders = orders?.data.data?.filter(
 		(order: any) =>
@@ -74,8 +99,10 @@ export default function OrdersPage() {
 		<div className='space-y-6'>
 			{/* Header */}
 			<div>
-				<h1 className='text-3xl font-bold text-foreground'>Order History</h1>
-				<p className='text-muted-foreground'>View and manage all orders</p>
+				<h1 className='text-3xl font-bold text-foreground'>
+					{t('orders.title')}
+				</h1>
+				<p className='text-muted-foreground'>{t('orders.subtitle')}</p>
 			</div>
 
 			{/* Filters */}
@@ -86,7 +113,7 @@ export default function OrdersPage() {
 							<div className='relative'>
 								<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground' />
 								<Input
-									placeholder='Search by order #, customer, or table...'
+									placeholder={t('orders.searchPlaceholder')}
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
 									className='pl-10'
@@ -101,21 +128,21 @@ export default function OrdersPage() {
 										variant='outline'
 										className='gap-2'>
 										<Calendar className='w-4 h-4' />
-										Date
+										{t('common.date')}
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
 									<DropdownMenuItem onClick={() => setDateFilter('today')}>
-										Today
+										{t('orders.today')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setDateFilter('week')}>
-										This Week
+										{t('orders.thisWeek')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setDateFilter('month')}>
-										This Month
+										{t('orders.thisMonth')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setDateFilter('all')}>
-										All Time
+										{t('orders.allTime')}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -126,25 +153,25 @@ export default function OrdersPage() {
 										variant='outline'
 										className='gap-2'>
 										<Filter className='w-4 h-4' />
-										Status
+										{t('common.status')}
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
 									<DropdownMenuItem onClick={() => setStatusFilter('all')}>
-										All Status
+										{t('orders.allStatus')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setStatusFilter('pending')}>
-										Pending
+										{t('orders.pending')}
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										onClick={() => setStatusFilter('preparing')}>
-										Preparing
+										{t('orders.preparing')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setStatusFilter('ready')}>
-										Ready
+										{t('orders.ready')}
 									</DropdownMenuItem>
 									<DropdownMenuItem onClick={() => setStatusFilter('paid')}>
-										Paid
+										{t('orders.paid')}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -156,20 +183,24 @@ export default function OrdersPage() {
 			{/* Orders Table */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Orders ({filteredOrders?.length || 0})</CardTitle>
+					<CardTitle>
+						{t('orders.title')} ({filteredOrders?.length || 0})
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Order #</TableHead>
-								<TableHead>Date & Time</TableHead>
-								<TableHead>Customer</TableHead>
-								<TableHead>Table</TableHead>
-								<TableHead>Items</TableHead>
-								<TableHead>Total</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className='text-right'>Actions</TableHead>
+								<TableHead>{t('orders.orderNumber')}</TableHead>
+								<TableHead>{t('orders.dateTime')}</TableHead>
+								<TableHead>{t('orders.customer')}</TableHead>
+								<TableHead>{t('orders.table')}</TableHead>
+								<TableHead>{t('orders.items')}</TableHead>
+								<TableHead>{t('orders.total')}</TableHead>
+								<TableHead>{t('orders.status')}</TableHead>
+								<TableHead className='text-right'>
+									{t('orders.actions')}
+								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -190,10 +221,12 @@ export default function OrdersPage() {
 												</div>
 											</div>
 										</TableCell>
-										<TableCell>{order.customerName || 'Walk-in'}</TableCell>
+										<TableCell>
+											{order.customerName || t('orders.walkIn')}
+										</TableCell>
 										<TableCell>
 											{order.tableNumber === 'Takeaway' ?
-												<Badge variant='outline'>Takeaway</Badge>
+												<Badge variant='outline'>{t('orders.takeaway')}</Badge>
 											:	order.tableNumber}
 										</TableCell>
 										<TableCell>
@@ -201,7 +234,7 @@ export default function OrdersPage() {
 												(sum: number, item: any) => sum + item.quantity,
 												0
 											)}{' '}
-											items
+											{t('orders.items')}
 										</TableCell>
 										<TableCell className='font-semibold'>
 											${order.total?.toFixed(2) || '0.00'}
@@ -221,15 +254,17 @@ export default function OrdersPage() {
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align='end'>
-													<DropdownMenuLabel>Actions</DropdownMenuLabel>
+													<DropdownMenuLabel>
+														{t('orders.actions')}
+													</DropdownMenuLabel>
 													<DropdownMenuSeparator />
 													<DropdownMenuItem>
 														<Eye className='w-4 h-4 mr-2' />
-														View Details
+														{t('orders.viewDetails')}
 													</DropdownMenuItem>
 													<DropdownMenuItem>
 														<Receipt className='w-4 h-4 mr-2' />
-														Print Receipt
+														{t('orders.printReceipt')}
 													</DropdownMenuItem>
 												</DropdownMenuContent>
 											</DropdownMenu>
@@ -243,11 +278,11 @@ export default function OrdersPage() {
 					{(!filteredOrders || filteredOrders.length === 0) && (
 						<div className='text-center py-12 text-muted-foreground'>
 							<Receipt className='w-12 h-12 mx-auto mb-4 opacity-50' />
-							<p>No orders found</p>
+							<p>{t('orders.noOrdersFound')}</p>
 							<p className='text-sm mt-2'>
 								{searchQuery ?
-									'Try a different search term'
-								:	'Start taking orders at the POS'}
+									t('orders.tryDifferentSearch')
+								:	t('orders.startTakingOrders')}
 							</p>
 						</div>
 					)}

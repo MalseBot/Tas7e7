@@ -6,31 +6,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminService } from '@/lib/api/services';
 import { useQuery } from '@tanstack/react-query';
-export interface topSales{
-itemName:string,
-totalQuantity:number,
-totalRevenue:number,
-_id:{
-	category:string,
-	name:string,
-	_id:string
+import { useTranslation } from 'react-i18next';
+
+export interface topSales {
+	itemName: string;
+	totalQuantity: number;
+	totalRevenue: number;
+	_id: {
+		category: string;
+		name: string;
+		_id: string;
+	};
 }
-}
+
 export function TopProducts() {
+	const { t } = useTranslation();
 	const { data: stats } = useQuery({
 		queryKey: ['top-items'],
 		queryFn: () => adminService.getTopItems(),
-	});	
-
+	});
 
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Top Selling Products</CardTitle>
+				<CardTitle>{t('dashboard.topSellingProducts')}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className='space-y-4'>
-					{stats?.data.data.map((product:topSales, index:number) => (
+					{stats?.data.data.map((product: topSales, index: number) => (
 						<div
 							key={product.itemName}
 							className='flex items-center'>
@@ -40,7 +43,7 @@ export function TopProducts() {
 							<div className='flex-1'>
 								<p className='font-medium'>{product.itemName}</p>
 								<p className='text-sm text-muted-foreground'>
-									{product.totalQuantity} sold
+									{product.totalQuantity} {t('common.sold')}
 								</p>
 							</div>
 							<div className='text-right'>

@@ -25,8 +25,12 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
-import { Notification, NotificationType, useNotifications } from '@/lib/constants/notification-context';
-
+import {
+	Notification,
+	NotificationType,
+	useNotifications,
+} from '@/lib/constants/notification-context';
+import { useTranslation } from 'react-i18next';
 
 const getNotificationIcon = (type: NotificationType) => {
 	switch (type) {
@@ -43,6 +47,7 @@ const getNotificationIcon = (type: NotificationType) => {
 };
 
 export function NotificationDropdown() {
+	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
 	const {
 		notifications,
@@ -71,7 +76,7 @@ export function NotificationDropdown() {
 				<Button
 					variant='ghost'
 					size='icon'
-					className='relative'>
+					className='relative rounded-full'>
 					<Bell className='w-5 h-5' />
 					{unreadCount > 0 && (
 						<Badge className='absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-destructive text-destructive-foreground'>
@@ -90,7 +95,7 @@ export function NotificationDropdown() {
 								<Badge
 									variant='secondary'
 									className='text-xs'>
-									{unreadCount} new
+									{unreadCount} {t('common.new')}
 								</Badge>
 							)}
 						</div>
@@ -102,7 +107,7 @@ export function NotificationDropdown() {
 									onClick={markAllAsRead}
 									className='h-8 text-xs'>
 									<CheckCheck className='w-3 h-3 mr-1' />
-									Mark all read
+									{t('common.markAllRead')}
 								</Button>
 							)}
 							{notifications.length > 0 && (
@@ -112,7 +117,7 @@ export function NotificationDropdown() {
 									onClick={clearAllNotifications}
 									className='h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50'>
 									<Trash2 className='w-3 h-3 mr-1' />
-									Clear all
+									{t('common.clearAll')}
 								</Button>
 							)}
 						</div>
@@ -123,9 +128,9 @@ export function NotificationDropdown() {
 					{notifications.length === 0 ?
 						<div className='flex flex-col items-center justify-center h-full p-8 text-center'>
 							<Bell className='w-12 h-12 mb-4 text-muted-foreground opacity-50' />
-							<p className='font-medium'>No notifications</p>
+							<p className='font-medium'>{t('common.noNotifications')}</p>
 							<p className='text-sm text-muted-foreground'>
-								You're all caught up!
+								{t('common.allCaughtUp')}
 							</p>
 						</div>
 					:	<div className='divide-y'>
@@ -133,7 +138,7 @@ export function NotificationDropdown() {
 								<div
 									key={notification.id}
 									className={`p-4 hover:bg-accent cursor-pointer transition-colors ${
-										!notification.read ? 'bg-blue-50/50' : ''
+										!notification.read ? 'bg-accent' : ''
 									}`}
 									onClick={() => handleNotificationClick(notification)}>
 									<div className='flex gap-3'>
@@ -149,7 +154,7 @@ export function NotificationDropdown() {
 													{!notification.read && (
 														<span className='w-2 h-2 rounded-full bg-blue-500' />
 													)}
-													<span className='text-xs text-muted-foreground'>
+													<span className='text-xs text-accent-foreground'>
 														{formatDistanceToNow(notification.timestamp, {
 															addSuffix: true,
 														})}
@@ -166,7 +171,7 @@ export function NotificationDropdown() {
 													</Button>
 												</div>
 											</div>
-											<p className='text-sm text-muted-foreground'>
+											<p className='text-sm text-accent-foreground'>
 												{notification.message}
 											</p>
 											{notification.action && (

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '../ui/input';
+import { useTranslation } from 'react-i18next';
 
 interface CartItem {
 	menuItem: string;
@@ -22,7 +23,7 @@ interface CartProps {
 	selectedTable: string;
 	onUpdateQuantity: (itemId: string, quantity: number) => void;
 	onCheckout: (orderData: { tableNumber: string; items: CartItem[] }) => void;
-	onTableChange: (tableNumber: string) => void; // NEW: Add this prop
+	onTableChange: (tableNumber: string) => void;
 }
 
 export function Cart({
@@ -30,8 +31,9 @@ export function Cart({
 	selectedTable,
 	onUpdateQuantity,
 	onCheckout,
-	onTableChange, // NEW: Accept table change handler
+	onTableChange,
 }: CartProps) {
+	const { t } = useTranslation();
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [orderTable, setOrderTable] = useState(selectedTable);
 	const [isTakeaway, setIsTakeaway] = useState(false);
@@ -50,11 +52,11 @@ export function Cart({
 
 	const handleTableChange = (value: string) => {
 		setOrderTable(value);
-		onTableChange(value); // Notify parent of table change
+		onTableChange(value);
 	};
 
 	const handleTakeaway = () => {
-		const takeawayValue = 'Takeaway';
+		const takeawayValue = t('pos.takeaway');
 		setOrderTable(takeawayValue);
 		setIsTakeaway(!isTakeaway);
 		onTableChange(takeawayValue);
@@ -63,17 +65,14 @@ export function Cart({
 	const handleTableInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 		handleTableChange(value);
-		setIsTakeaway(value === 'Takeaway');
+		setIsTakeaway(value === t('pos.takeaway'));
 	};
 
 	const handleCheckout = () => {
-		// Prepare order data
 		const orderData = {
-			tableNumber: orderTable || 'Takeaway',
+			tableNumber: orderTable || t('pos.takeaway'),
 			items: items,
 		};
-
-		// Call parent checkout handler with order data
 		onCheckout(orderData);
 	};
 
@@ -98,7 +97,7 @@ export function Cart({
 			<CardHeader className='flex flex-row items-center justify-between'>
 				<CardTitle className='flex items-center gap-2'>
 					<ShoppingCart className='w-5 h-5' />
-					Current Order
+					{t('pos.currentOrder')}
 					{orderTable && (
 						<Badge
 							variant={isTakeaway ? 'secondary' : 'default'}
@@ -119,8 +118,8 @@ export function Cart({
 				{items.length === 0 ?
 					<div className='text-center py-12 text-muted-foreground'>
 						<ShoppingCart className='w-12 h-12 mx-auto mb-4 opacity-50' />
-						<p>Your cart is empty</p>
-						<p className='text-sm mt-2'>Add items from the menu</p>
+						<p>{t('pos.cartEmpty')}</p>
+						<p className='text-sm mt-2'>{t('pos.addFromMenu')}</p>
 					</div>
 				:	<div className='space-y-3'>
 						{items.map((item) => (
@@ -163,7 +162,7 @@ export function Cart({
 									</div>
 									<div className='text-right'>
 										<p className='text-sm text-muted-foreground'>
-											${item.price.toFixed(2)} each
+											${item.price.toFixed(2)} {t('common.each')}
 										</p>
 										<p className='font-semibold'>
 											${(item.price * item.quantity).toFixed(2)}
@@ -181,26 +180,26 @@ export function Cart({
 					{/* Table Selection */}
 					<div className='mb-4'>
 						<label className='block text-sm font-medium text-foreground mb-2'>
-							Table Number
+							{t('pos.tableNumber')}
 						</label>
 						<div className='flex gap-2'>
 							<Input
 								type='text'
-								value={orderTable === 'Takeaway' ? '' : orderTable}
+								value={orderTable === t('pos.takeaway') ? '' : orderTable}
 								onChange={handleTableInputChange}
-								placeholder='Enter table number (e.g., T1, T2)'
+								placeholder={t('pos.enterTableNumber')}
 								className='flex-1 px-3 py-2 border rounded-lg'
 								disabled={isTakeaway}
 							/>
 							<Button
 								variant={isTakeaway ? 'default' : 'outline'}
 								onClick={handleTakeaway}>
-								{isTakeaway ? '✓ Takeaway' : 'Takeaway'}
+								{isTakeaway ? `✓ ${t('pos.takeaway')}` : t('pos.takeaway')}
 							</Button>
 						</div>
 						{isTakeaway && (
 							<p className='text-xs text-muted-foreground mt-2'>
-								Order set as Takeaway
+								{t('pos.orderSetAsTakeaway')}
 							</p>
 						)}
 					</div>
@@ -208,15 +207,15 @@ export function Cart({
 					{/* Totals */}
 					<div className='space-y-2 mb-6'>
 						<div className='flex justify-between text-sm'>
-							<span className='text-muted-foreground'>Subtotal</span>
+							<span className='text-muted-foreground'>{t('pos.subtotal')}</span>
 							<span>${subtotal.toFixed(2)}</span>
 						</div>
 						<div className='flex justify-between text-sm'>
-							<span className='text-muted-foreground'>Tax (13%)</span>
+							<span className='text-muted-foreground'>{t('pos.tax')}</span>
 							<span>${tax.toFixed(2)}</span>
 						</div>
 						<div className='flex justify-between pt-2 border-t font-semibold'>
-							<span>Total</span>
+							<span>{t('pos.total')}</span>
 							<span>${total.toFixed(2)}</span>
 						</div>
 					</div>
@@ -226,9 +225,9 @@ export function Cart({
 						size='lg'
 						onClick={handleCheckout}
 						disabled={items.length === 0 || (!orderTable && !isTakeaway)}>
-						{orderTable === 'Takeaway' ?
-							'Checkout Takeaway'
-						:	`Checkout Table ${orderTable}`}
+						{orderTable === t('pos.takeaway') ?
+							t('pos.checkoutTakeaway')
+						:	`${t('pos.checkout')} ${orderTable}`}
 					</Button>
 				</div>
 			)}

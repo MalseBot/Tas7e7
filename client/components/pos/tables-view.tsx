@@ -28,6 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 interface Table {
 	_id: string;
@@ -44,6 +45,7 @@ interface TablesViewProps {
 }
 
 export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
+	const { t } = useTranslation();
 	const queryClient = useQueryClient();
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [newTableData, setNewTableData] = useState({
@@ -109,17 +111,19 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 	const getStatusText = (status: string) => {
 		switch (status) {
 			case 'available':
-				return 'Available';
+				return t('tables.available');
 			case 'occupied':
-				return 'Occupied';
+				return t('tables.occupied');
 			case 'reserved':
-				return 'Reserved';
+				return t('tables.reserved');
 			case 'cleaning':
-				return 'Cleaning';
+				return t('tables.cleaning');
 			default:
 				return status;
 		}
 	};
+
+
 
 	const handleTableClick = (table: Table) => {
 		if (table.status === 'available') {
@@ -139,7 +143,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 
 	// Group tables by location for better organization
 	const tablesByLocation = tables.reduce(
-		(acc: Record<string, Table[]>, table:any) => {
+		(acc: Record<string, Table[]>, table: any) => {
 			if (!acc[table.location]) {
 				acc[table.location] = [];
 			}
@@ -152,7 +156,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 	// Sort tables by number
 	const sortedTables = Object.keys(tablesByLocation).reduce(
 		(acc: Record<string, Table[]>, location) => {
-			acc[location] = tablesByLocation[location].sort((a:any, b:any) => {
+			acc[location] = tablesByLocation[location].sort((a: any, b: any) => {
 				// Extract numbers from table numbers for proper sorting
 				const numA = parseInt(a.tableNumber.replace(/\D/g, '')) || 0;
 				const numB = parseInt(b.tableNumber.replace(/\D/g, '')) || 0;
@@ -169,7 +173,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 				<CardContent className='p-6'>
 					<div className='flex items-center justify-center h-48'>
 						<RefreshCw className='w-6 h-6 animate-spin' />
-						<span className='ml-2'>Loading tables...</span>
+						<span className='ml-2'>{t('tables.loading')}</span>
 					</div>
 				</CardContent>
 			</Card>
@@ -181,12 +185,12 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 			<Card>
 				<CardContent className='p-6'>
 					<div className='text-center py-8'>
-						<div className='text-red-500 mb-4'>Failed to load tables</div>
+						<div className='text-red-500 mb-4'>{t('tables.loadFailed')}</div>
 						<Button
 							onClick={() => refetch()}
 							variant='outline'>
 							<RefreshCw className='w-4 h-4 mr-2' />
-							Retry
+							{t('common.retry')}
 						</Button>
 					</div>
 				</CardContent>
@@ -200,12 +204,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 				<CardContent className='p-6 '>
 					<div className='flex items-center justify-between mb-4'>
 						<div>
-							<h3 className='text-lg font-semibold'>Tables</h3>
-							<p className='text-sm text-muted-foreground'>
-								{tables.length} tables •{' '}
-								{tables.filter((t:any) => t.status === 'available').length}{' '}
-								available
-							</p>
+							<h3 className='text-lg font-semibold'>{t('pos.tables')}</h3>
 						</div>
 						<div className='flex gap-2'>
 							<Button
@@ -223,19 +222,21 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 								<DialogTrigger asChild>
 									<Button size='sm'>
 										<Plus className='w-4 h-4 mr-1' />
-										Add Table
+										{t('tables.addTable')}
 									</Button>
 								</DialogTrigger>
 								<DialogContent>
 									<DialogHeader>
-										<DialogTitle>Add New Table</DialogTitle>
+										<DialogTitle>{t('tables.addNewTable')}</DialogTitle>
 										<DialogDescription>
-											Create a new table for your café
+											{t('tables.createNewTable')}
 										</DialogDescription>
 									</DialogHeader>
 									<div className='space-y-4 py-4'>
 										<div className='space-y-2'>
-											<Label htmlFor='tableNumber'>Table Number *</Label>
+											<Label htmlFor='tableNumber'>
+												{t('tables.tableNumber')} *
+											</Label>
 											<Input
 												id='tableNumber'
 												value={newTableData.tableNumber}
@@ -245,12 +246,12 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 														tableNumber: e.target.value,
 													})
 												}
-												placeholder='T1, T2, etc.'
+												placeholder={t('tables.tableNumberPlaceholder')}
 											/>
 										</div>
 										<div className='grid grid-cols-2 gap-4'>
 											<div className='space-y-2'>
-												<Label htmlFor='capacity'>Capacity</Label>
+												<Label htmlFor='capacity'>{t('tables.capacity')}</Label>
 												<Select
 													value={newTableData.capacity.toString()}
 													onValueChange={(value) =>
@@ -260,21 +261,23 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 														})
 													}>
 													<SelectTrigger>
-														<SelectValue placeholder='Select capacity' />
+														<SelectValue
+															placeholder={t('tables.selectCapacity')}
+														/>
 													</SelectTrigger>
 													<SelectContent>
 														{[2, 4, 6, 8, 10].map((num) => (
 															<SelectItem
 																key={num}
 																value={num.toString()}>
-																{num} seats
+																{num} {t('tables.seats')}
 															</SelectItem>
 														))}
 													</SelectContent>
 												</Select>
 											</div>
 											<div className='space-y-2'>
-												<Label htmlFor='location'>Location</Label>
+												<Label htmlFor='location'>{t('tables.location')}</Label>
 												<Select
 													value={newTableData.location}
 													onValueChange={(value) =>
@@ -284,32 +287,46 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 														})
 													}>
 													<SelectTrigger>
-														<SelectValue placeholder='Select location' />
+														<SelectValue
+															placeholder={t('tables.selectLocation')}
+														/>
 													</SelectTrigger>
 													<SelectContent>
-														<SelectItem value='main'>Main Hall</SelectItem>
-														<SelectItem value='terrace'>Terrace</SelectItem>
-														<SelectItem value='private'>
-															Private Room
+														<SelectItem value='main'>
+															{t('tables.mainHall')}
 														</SelectItem>
-														<SelectItem value='bar'>Bar Area</SelectItem>
+														<SelectItem value='terrace'>
+															{t('tables.terrace')}
+														</SelectItem>
+														<SelectItem value='private'>
+															{t('tables.privateRoom')}
+														</SelectItem>
+														<SelectItem value='bar'>
+															{t('tables.barArea')}
+														</SelectItem>
 													</SelectContent>
 												</Select>
 											</div>
 										</div>
 										<div className='space-y-2'>
-											<Label htmlFor='status'>Initial Status</Label>
+											<Label htmlFor='status'>
+												{t('tables.initialStatus')}
+											</Label>
 											<Select
 												value={newTableData.status}
 												onValueChange={(value: any) =>
 													setNewTableData({ ...newTableData, status: value })
 												}>
 												<SelectTrigger>
-													<SelectValue placeholder='Select status' />
+													<SelectValue placeholder={t('tables.selectStatus')} />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value='available'>Available</SelectItem>
-													<SelectItem value='cleaning'>Cleaning</SelectItem>
+													<SelectItem value='available'>
+														{t('tables.available')}
+													</SelectItem>
+													<SelectItem value='cleaning'>
+														{t('tables.cleaning')}
+													</SelectItem>
 												</SelectContent>
 											</Select>
 										</div>
@@ -318,7 +335,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 										<Button
 											variant='outline'
 											onClick={() => setShowAddDialog(false)}>
-											Cancel
+											{t('common.cancel')}
 										</Button>
 										<Button
 											onClick={handleAddTable}
@@ -327,8 +344,8 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 												createTableMutation.isPending
 											}>
 											{createTableMutation.isPending ?
-												'Creating...'
-											:	'Create Table'}
+												t('tables.creating')
+											:	t('tables.createTable')}
 										</Button>
 									</DialogFooter>
 								</DialogContent>
@@ -341,19 +358,11 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 							key={location}
 							className='mb-6 last:mb-0 '>
 							<div className='flex items-center mb-3'>
-								<h4 className='font-medium text-sm text-muted-foreground uppercase tracking-wide'>
-									{location === 'main' && 'Main Hall'}
-									{location === 'terrace' && 'Terrace'}
-									{location === 'private' && 'Private Room'}
-									{location === 'bar' && 'Bar Area'}
-									{!['main', 'terrace', 'private', 'bar'].includes(location) &&
-										location}
-								</h4>
 								<div className='ml-2 flex gap-1'>
 									<Badge
 										variant='outline'
 										className='text-xs'>
-										{sortedTables[location].length} tables
+										{sortedTables[location].length} {t('tables.title')}
 									</Badge>
 									<Badge
 										variant='secondary'
@@ -363,7 +372,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 												(t) => t.status === 'available'
 											).length
 										}{' '}
-										available
+										{t('tables.available')}
 									</Badge>
 								</div>
 							</div>
@@ -397,7 +406,7 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 
 											{/* Capacity */}
 											<div className='text-xs text-muted-foreground mb-1'>
-												{table.capacity} seats
+												{table.capacity} {t('tables.seats')}
 											</div>
 
 											{/* Status badge */}
@@ -415,7 +424,9 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 													className='h-6 text-xs'
 													onClick={() => handleTableClick(table)}
 													disabled={!isAvailable}>
-													{isSelected ? 'Selected' : 'Select'}
+													{isSelected ?
+														t('tables.selected')
+													:	t('tables.select')}
 												</Button>
 												<Button
 													size='sm'
@@ -425,7 +436,9 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 														handleStatusChange(table._id, table.status)
 													}
 													disabled={updateTableStatusMutation.isPending}>
-													{table.status === 'occupied' ? 'Free' : 'Occupy'}
+													{table.status === 'occupied' ?
+														t('tables.free')
+													:	t('tables.occupy')}
 												</Button>
 											</div>
 
@@ -447,13 +460,13 @@ export function TablesView({ selectedTable, onSelectTable }: TablesViewProps) {
 							<div className='mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4'>
 								<Plus className='w-6 h-6 text-muted-foreground' />
 							</div>
-							<h4 className='font-medium mb-2'>No tables found</h4>
+							<h4 className='font-medium mb-2'>{t('tables.noTablesFound')}</h4>
 							<p className='text-sm text-muted-foreground mb-4'>
-								Create your first table to start taking orders
+								{t('tables.createFirstTable')}
 							</p>
 							<Button onClick={() => setShowAddDialog(true)}>
 								<Plus className='w-4 h-4 mr-2' />
-								Add First Table
+								{t('tables.addFirstTable')}
 							</Button>
 						</div>
 					)}

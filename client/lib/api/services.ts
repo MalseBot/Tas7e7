@@ -70,7 +70,7 @@ export const menuService = {
 	getMenuItem: (id: string) => api.get(`/menu/${id}`),
 	createMenuItem: (data: any) => api.post('/menu', data),
 	updateMenuItem: (id: string, data: any) => api.put(`/menu/${id}`, data),
-	deleteMenuItem: (id: string) => api.delete(`/menu/${id}`),
+	menuItemAvailability: (id: string) => api.put(`/menu/${id}/availability`),
 	getCategories: () => api.get('/menu/categories'),
 };
 

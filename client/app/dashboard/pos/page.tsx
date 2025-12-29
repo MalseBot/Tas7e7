@@ -12,8 +12,10 @@ import { TablesView } from '@/components/pos/tables-view';
 import { CheckoutModal } from '@/components/pos/checkout-modal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, ShoppingCart, Table as TableIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function POSPage() {
+	const { t } = useTranslation();
 	const queryClient = useQueryClient();
 	const [cart, setCart] = useState<any[]>([]);
 	const [selectedTable, setSelectedTable] = useState<string>('');
@@ -70,7 +72,6 @@ export default function POSPage() {
 			]);
 		}
 	};
-console.log(menuData?.data.data);
 
 	const handleUpdateQuantity = (itemId: string, quantity: number) => {
 		if (quantity === 0) {
@@ -99,8 +100,8 @@ console.log(menuData?.data.data);
 		<div className='space-y-6'>
 			{/* Header */}
 			<div className='bg-card rounded-xl border border-border p-6'>
-				<h1 className='text-2xl font-bold text-foreground'>Point of Sale</h1>
-				<p className='text-muted-foreground'>Manage orders and payments</p>
+				<h1 className='text-2xl font-bold text-foreground'>{t('pos.title')}</h1>
+				<p className='text-muted-foreground'>{t('pos.subtitle')}</p>
 			</div>
 
 			{/* Main Content */}
@@ -115,13 +116,13 @@ console.log(menuData?.data.data);
 								value='menu'
 								className='flex items-center gap-2'>
 								<Package className='w-4 h-4' />
-								Menu
+								{t('pos.menu')}
 							</TabsTrigger>
 							<TabsTrigger
 								value='tables'
 								className='flex items-center gap-2'>
 								<TableIcon className='w-4 h-4' />
-								Tables
+								{t('pos.tables')}
 							</TabsTrigger>
 						</TabsList>
 

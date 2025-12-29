@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminService } from '@/lib/api/services';
 import { useQuery } from '@tanstack/react-query';
 import { parse, format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface salesData {
 	averageOrderValue: number;
@@ -14,7 +15,9 @@ interface salesData {
 	totalRevenue: number;
 	_id: { day: number; month: number; year: number };
 }
+
 export function SalesChart() {
+	const { t } = useTranslation();
 	const {
 		data: stats,
 		isLoading,
@@ -23,27 +26,30 @@ export function SalesChart() {
 		queryKey: ['sales-report'],
 		queryFn: () => adminService.getSalesReport(),
 	});
-	// This is a simple placeholder chart
- console.log(stats);
- 
+
 	if (isLoading) {
-		return <div>Loading sales data...</div>;
+		return <div>{t('common.loading')}...</div>;
 	}
 	if (error) {
-		return <div>Error loading sales data: {error.message}</div>;
+		return (
+			<div>
+				{t('common.error')}: {error.message}
+			</div>
+		);
 	}
+
 	const salesData = stats?.data.data;
-	const maxSales = Math.max(...salesData.map((e:salesData) => e.totalRevenue));
-	console.log(maxSales);
+	const maxSales = Math.max(...salesData.map((e: salesData) => e.totalRevenue));
+
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Weekly Sales</CardTitle>
+				<CardTitle>{t('dashboard.weeklySales')}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className='h-64 flex items-end justify-between gap-2'>
-					 {salesData.map((data:salesData) => {
-						const height = (data.totalOrders / maxSales)  * 100;						
+					{salesData?.map((data: salesData) => {
+						const height = (data.totalOrders / maxSales) * 100;
 						const dateString = `${data._id.day}/${data._id.month}/${data._id.year}`;
 						const date = parse(dateString, 'dd/MM/yyyy', new Date());
 						const dayName = format(date, 'EEEE');
@@ -56,7 +62,7 @@ export function SalesChart() {
 										className='absolute bottom-0 w-full bg-primary rounded-t-lg transition-all group-hover:bg-primary/90'
 										style={{
 											height: `${height}%`,
-											minHeight: '1px', 
+											minHeight: '1px',
 										}}
 									/>
 								</div>
@@ -65,11 +71,11 @@ export function SalesChart() {
 									${data.totalRevenue}
 								</span>
 								<span className='text-xs text-gray-500 mt-1'>
-									{data.totalOrders} orders
+									{data.totalOrders} {t('common.orders')}
 								</span>
 							</div>
 						);
-					})} 
+					})}
 				</div>
 			</CardContent>
 		</Card>

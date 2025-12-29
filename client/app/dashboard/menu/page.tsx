@@ -36,8 +36,13 @@ import {
 	Package,
 } from 'lucide-react';
 import { MenuItemModal } from '@/components/menu/menu-item-modal';
+import { useNotificationActions } from '@/lib/hooks/useNotificationActions.ts';
+import { useTranslation } from 'react-i18next';
 
 export default function MenuPage() {
+	const { notifySuccess, notifyError } = useNotificationActions();
+	const { t } = useTranslation();
+
 	const queryClient = useQueryClient();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showModal, setShowModal] = useState(false);
@@ -48,18 +53,23 @@ export default function MenuPage() {
 		queryFn: () => menuService.getMenu({ availableOnly: false }),
 	});
 
-	const deleteMutation = useMutation({
-		mutationFn: (id: string) => menuService.deleteMenuItem(id),
+	const updateMutation = useMutation({
+		mutationFn: (id: string) => menuService.menuItemAvailability(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['menu'] });
+			notifySuccess(t('common.success'), t('menu.itemDeleted'));
 		},
 	});
 
 	const toggleAvailability = useMutation({
 		mutationFn: ({ id, isAvailable }: { id: string; isAvailable: boolean }) =>
 			menuService.updateMenuItem(id, { isAvailable }),
-		onSuccess: () => {
+		onSuccess: (isAvailable) => {
 			queryClient.invalidateQueries({ queryKey: ['menu'] });
+			notifySuccess(
+				t('menu.availability'),
+				`${isAvailable.data.data.name} ${isAvailable.data.data.isAvailable ? t('menu.nowAvailable') : t('menu.notAvailable')}`
+			);
 		},
 	});
 
@@ -77,8 +87,8 @@ export default function MenuPage() {
 	};
 
 	const handleDelete = (id: string) => {
-		if (confirm('Are you sure you want to delete this item?')) {
-			deleteMutation.mutate(id);
+		if (confirm(t('menu.confirmDelete'))) {
+			updateMutation.mutate(id);
 		}
 	};
 
@@ -88,11 +98,9 @@ export default function MenuPage() {
 			<div className='flex items-center justify-between'>
 				<div>
 					<h1 className='text-3xl font-bold text-foreground'>
-						Menu Management
+						{t('menu.title')}
 					</h1>
-					<p className='text-muted-foreground'>
-						Manage your restaurant menu items
-					</p>
+					<p className='text-muted-foreground'>{t('menu.subtitle')}</p>
 				</div>
 				<Button
 					onClick={() => {
@@ -100,7 +108,7 @@ export default function MenuPage() {
 						setShowModal(true);
 					}}>
 					<Plus className='w-4 h-4 mr-2' />
-					Add Item
+					{t('menu.addItem')}
 				</Button>
 			</div>
 
@@ -110,7 +118,7 @@ export default function MenuPage() {
 					<div className='relative max-w-md'>
 						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground' />
 						<Input
-							placeholder='Search menu items...'
+							placeholder={t('menu.searchPlaceholder')}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className='pl-10'
@@ -122,18 +130,22 @@ export default function MenuPage() {
 			{/* Menu Table */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Menu Items ({filteredItems.length})</CardTitle>
+					<CardTitle>
+						{t('menu.menuItems')} ({filteredItems.length})
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Item</TableHead>
-								<TableHead>Category</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Stock</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className='text-right'>Actions</TableHead>
+								<TableHead>{t('menu.item')}</TableHead>
+								<TableHead>{t('menu.category')}</TableHead>
+								<TableHead>{t('menu.price')}</TableHead>
+								<TableHead>{t('menu.stock')}</TableHead>
+								<TableHead>{t('menu.status')}</TableHead>
+								<TableHead className='text-right'>
+									{t('menu.actions')}
+								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -156,7 +168,7 @@ export default function MenuPage() {
 										<Badge
 											variant='outline'
 											className='capitalize'>
-											{item.category}
+											{t(`menu.categories.${item.category}`, item.category) as string}
 										</Badge>
 									</TableCell>
 									<TableCell className='font-semibold'>
@@ -180,7 +192,9 @@ export default function MenuPage() {
 													isAvailable: !item.isAvailable,
 												})
 											}>
-											{item.isAvailable ? 'Available' : 'Unavailable'}
+											{item.isAvailable ?
+												t('menu.available')
+											:	t('menu.unavailable')}
 										</Badge>
 									</TableCell>
 									<TableCell className='text-right'>
@@ -193,21 +207,17 @@ export default function MenuPage() {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align='end'>
-												<DropdownMenuLabel>Actions</DropdownMenuLabel>
+												<DropdownMenuLabel>
+													{t('menu.actions')}
+												</DropdownMenuLabel>
 												<DropdownMenuSeparator />
 												<DropdownMenuItem onClick={() => handleEdit(item)}>
 													<Edit className='w-4 h-4 mr-2' />
-													Edit
+													{t('common.edit')}
 												</DropdownMenuItem>
 												<DropdownMenuItem>
 													<Eye className='w-4 h-4 mr-2' />
-													View
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => handleDelete(item._id)}
-													className='text-destructive'>
-													<Trash2 className='w-4 h-4 mr-2' />
-													Delete
+													{t('common.view')}
 												</DropdownMenuItem>
 											</DropdownMenuContent>
 										</DropdownMenu>
@@ -220,11 +230,11 @@ export default function MenuPage() {
 					{filteredItems.length === 0 && (
 						<div className='text-center py-12 text-muted-foreground'>
 							<Package className='w-12 h-12 mx-auto mb-4 opacity-50' />
-							<p>No menu items found</p>
+							<p>{t('menu.noItemsFound')}</p>
 							<p className='text-sm mt-2'>
 								{searchQuery ?
-									'Try a different search term'
-								:	'Add your first menu item'}
+									t('menu.tryDifferentSearch')
+								:	t('menu.addFirstItem')}
 							</p>
 						</div>
 					)}

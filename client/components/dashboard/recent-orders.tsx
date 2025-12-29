@@ -7,16 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight } from 'lucide-react';
 import { Order } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 interface RecentOrdersProps {
 	orders?: Order[];
 }
 
 export function RecentOrders({ orders }: RecentOrdersProps) {
-	
+	const { t } = useTranslation();
 
-	const displayOrders = orders ;
-	
+	const displayOrders = orders;
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -33,11 +33,26 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
 		}
 	};
 
+	const getStatusText = (status: string) => {
+		switch (status) {
+			case 'paid':
+				return t('orders.paid');
+			case 'preparing':
+				return t('orders.preparing');
+			case 'pending':
+				return t('orders.pending');
+			case 'ready':
+				return t('orders.ready');
+			default:
+				return status;
+		}
+	};
+
 	return (
 		<Card>
 			<CardHeader>
 				<div className='flex items-center justify-between'>
-					<CardTitle>Recent Orders</CardTitle>
+					<CardTitle>{t('dashboard.recentOrders')}</CardTitle>
 					<ArrowUpRight className='w-5 h-5 text-muted-foreground' />
 				</div>
 			</CardHeader>
@@ -58,7 +73,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
 								<Badge
 									variant={getStatusColor(order.status)}
 									className='mt-1'>
-									{order.status}
+									{getStatusText(order.status)}
 								</Badge>
 							</div>
 						</div>

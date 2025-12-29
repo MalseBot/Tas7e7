@@ -8,6 +8,7 @@ import { Search, Package, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface MenuItem {
 	_id: string;
@@ -25,11 +26,17 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
+	const { t } = useTranslation();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
 	// Flatten menu if it's grouped by category
-	const menuArray =menu !== null &&menu !== undefined ? Array.isArray(menu) ? menu : Object.values(menu).flat(): []
+	const menuArray =
+		menu !== null && menu !== undefined ?
+			Array.isArray(menu) ?
+				menu
+			:	Object.values(menu).flat()
+		:	[];
 
 	// Get unique categories
 	const categories = [
@@ -47,6 +54,11 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 		return matchesSearch && matchesCategory && item.isAvailable;
 	});
 
+	const getCategoryLabel = (category: string) => {
+		if (category === 'all') return t('common.all');
+		return t(`menu.categories.${category}`, category);
+	};
+
 	return (
 		<Card>
 			<CardContent className='p-6'>
@@ -55,7 +67,7 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 					<div className='relative'>
 						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground' />
 						<Input
-							placeholder='Search products...'
+							placeholder={t('pos.searchProducts')}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className='pl-10'
@@ -70,7 +82,7 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 								size='sm'
 								onClick={() => setSelectedCategory(category)}
 								className='capitalize'>
-								{category}
+								{getCategoryLabel(category)}
 							</Button>
 						))}
 					</div>
@@ -80,7 +92,7 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 				{filteredProducts.length === 0 ?
 					<div className='text-center py-12 text-muted-foreground'>
 						<Package className='w-12 h-12 mx-auto mb-2 opacity-50' />
-						<p>No products found</p>
+						<p>{t('pos.noProductsFound')}</p>
 					</div>
 				:	<div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
 						{filteredProducts.map((item) => (
@@ -106,7 +118,7 @@ export function ProductGrid({ menu, onAddToCart }: ProductGridProps) {
 								{item.stock < 10 && (
 									<div className='absolute top-2 right-2'>
 										<span className='text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full'>
-											Low stock: {item.stock}
+											{t('common.lowStock')}: {item.stock}
 										</span>
 									</div>
 								)}

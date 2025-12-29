@@ -44,10 +44,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 import { settingsService } from '@/lib/api/services';
 import { Loader2 } from 'lucide-react';
 import { useNotificationActions } from '@/lib/hooks/useNotificationActions.ts';
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 // Currency options
 const CURRENCY_OPTIONS = [
@@ -108,7 +111,17 @@ interface SettingsForm {
 	autoPrintReceipts: boolean;
 }
 
+interface ApiError {
+	response?: {
+		data?: {
+			error?: string;
+		};
+	};
+	message?: string;
+}
+
 export default function SettingsPage() {
+	const { t } = useTranslation();
 	const { notifySuccess, notifyError } = useNotificationActions();
 	const queryClient = useQueryClient();
 	const [activeTab, setActiveTab] = useState('general');
@@ -131,6 +144,7 @@ export default function SettingsPage() {
 		lowStockThreshold: 10,
 		autoPrintReceipts: true,
 	});
+	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
 	// Fetch settings
 	const {
@@ -148,15 +162,16 @@ export default function SettingsPage() {
 		mutationFn: (data: SettingsForm) => settingsService.updateSettings(data),
 		onSuccess: () => {
 			notifySuccess(
-				'Settings Updated',
-				'Your changes have been saved successfully'
+				t('settings.updateSuccess.title'),
+				t('settings.updateSuccess.message')
 			);
 			queryClient.invalidateQueries({ queryKey: ['settings'] });
+			setFormErrors({});
 		},
-		onError: (error: any) => {
+		onError: (error: ApiError) => {
 			notifyError(
-				'Update Failed',
-				error.response?.data?.error || 'Failed to update settings'
+				t('settings.updateError.title'),
+				error.response?.data?.error || t('settings.updateError.message')
 			);
 		},
 	});
@@ -166,15 +181,15 @@ export default function SettingsPage() {
 		mutationFn: () => settingsService.resetSettings(),
 		onSuccess: () => {
 			notifySuccess(
-				'Settings Reset',
-				'Settings have been reset to default values'
+				t('settings.resetSuccess.title'),
+				t('settings.resetSuccess.message')
 			);
 			queryClient.invalidateQueries({ queryKey: ['settings'] });
 		},
-		onError: (error: any) => {
+		onError: (error: ApiError) => {
 			notifyError(
-				'Reset Failed',
-				error.response?.data?.error || 'Failed to reset settings'
+				t('settings.resetError.title'),
+				error.response?.data?.error || t('settings.resetError.message')
 			);
 		},
 	});
@@ -192,8 +207,10 @@ export default function SettingsPage() {
 				address: settings.address || '',
 				phone: settings.phone || '',
 				email: settings.email || '',
-				receiptHeader: settings.receiptHeader || 'Thank you for your visit!',
-				receiptFooter: settings.receiptFooter || 'Have a great day!',
+				receiptHeader:
+					settings.receiptHeader || t('settings.defaultReceiptHeader'),
+				receiptFooter:
+					settings.receiptFooter || t('settings.defaultReceiptFooter'),
 				logoUrl: settings.logoUrl || '',
 				enableTableReservation: settings.enableTableReservation !== false,
 				enableOnlineOrders: settings.enableOnlineOrders || false,
@@ -202,23 +219,54 @@ export default function SettingsPage() {
 				autoPrintReceipts: settings.autoPrintReceipts !== false,
 			});
 		}
-	}, [settings]);
+	}, [settings, t]);
+
+	const validateForm = (): boolean => {
+		const errors: Record<string, string> = {};
+
+		if (!formData.cafeName.trim()) {
+			errors.cafeName = t('settings.validation.cafeNameRequired');
+		}
+
+		if (formData.taxRate < 0 || formData.taxRate > 100) {
+			errors.taxRate = t('settings.validation.taxRateRange');
+		}
+
+		if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+			errors.email = t('settings.validation.invalidEmail');
+		}
+
+		if (formData.lowStockThreshold < 1) {
+			errors.lowStockThreshold = t('settings.validation.lowStockThresholdMin');
+		}
+
+		setFormErrors(errors);
+		return Object.keys(errors).length === 0;
+	};
 
 	const handleInputChange = (field: keyof SettingsForm, value: any) => {
 		setFormData((prev) => ({
 			...prev,
 			[field]: value,
 		}));
+		// Clear error for this field when user starts typing
+		if (formErrors[field]) {
+			setFormErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors[field];
+				return newErrors;
+			});
+		}
 	};
 
 	const handleSaveSettings = () => {
-		updateSettingsMutation.mutate(formData);
+		if (validateForm()) {
+			updateSettingsMutation.mutate(formData);
+		}
 	};
 
 	const handleResetSettings = () => {
-		if (
-			confirm('Are you sure you want to reset all settings to default values?')
-		) {
+		if (confirm(t('settings.resetConfirmation'))) {
 			resetSettingsMutation.mutate();
 		}
 	};
@@ -235,7 +283,7 @@ export default function SettingsPage() {
 			<div className='container mx-auto px-4 py-8'>
 				<div className='flex items-center justify-center h-64'>
 					<Loader2 className='w-8 h-8 animate-spin' />
-					<span className='ml-2'>Loading settings...</span>
+					<span className='ml-2'>{t('common.loading')}...</span>
 				</div>
 			</div>
 		);
@@ -248,9 +296,9 @@ export default function SettingsPage() {
 					<CardContent className='pt-6'>
 						<div className='text-center py-8'>
 							<SettingsIcon className='w-12 h-12 mx-auto mb-4 text-muted-foreground' />
-							<h3 className='text-lg font-medium'>Failed to load settings</h3>
+							<h3 className='text-lg font-medium'>{t('common.error')}</h3>
 							<p className='text-muted-foreground mt-2'>
-								There was an error loading the settings. Please try again.
+								{t('settings.loadError')}
 							</p>
 						</div>
 					</CardContent>
@@ -265,9 +313,11 @@ export default function SettingsPage() {
 			<div className='bg-card rounded-xl border border-border p-6 mb-8'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h1 className='text-2xl font-bold text-foreground'>Settings</h1>
+						<h1 className='text-2xl font-bold text-foreground'>
+							{t('settings.title')}
+						</h1>
 						<p className='text-muted-foreground mt-2'>
-							Configure your café settings and preferences
+							{t('settings.subtitle')}
 						</p>
 					</div>
 					<div className='flex gap-2'>
@@ -281,22 +331,40 @@ export default function SettingsPage() {
 							{resetSettingsMutation.isPending ?
 								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
 							:	<RotateCcw className='w-4 h-4 mr-2' />}
-							Reset to Default
+							{t('settings.resetToDefault')}
 						</Button>
 						<Button
 							onClick={handleSaveSettings}
 							disabled={
 								updateSettingsMutation.isPending ||
-								resetSettingsMutation.isPending
+								resetSettingsMutation.isPending ||
+								Object.keys(formErrors).length > 0
 							}>
 							{updateSettingsMutation.isPending ?
 								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
 							:	<Save className='w-4 h-4 mr-2' />}
-							Save Changes
+							{t('settings.saveChanges')}
 						</Button>
 					</div>
 				</div>
 			</div>
+
+			{/* Form Errors */}
+			{Object.keys(formErrors).length > 0 && (
+				<Alert
+					variant='destructive'
+					className='mb-6'>
+					<AlertCircle className='h-4 w-4' />
+					<AlertDescription>
+						{t('settings.validation.fixErrors')}
+						<ul className='mt-2 list-disc list-inside'>
+							{Object.values(formErrors).map((error, index) => (
+								<li key={index}>{error}</li>
+							))}
+						</ul>
+					</AlertDescription>
+				</Alert>
+			)}
 
 			<Tabs
 				value={activeTab}
@@ -307,25 +375,25 @@ export default function SettingsPage() {
 						value='general'
 						className='flex items-center gap-2'>
 						<SettingsIcon className='w-4 h-4' />
-						General
+						{t('settings.tabs.general')}
 					</TabsTrigger>
 					<TabsTrigger
 						value='business'
 						className='flex items-center gap-2'>
 						<Building className='w-4 h-4' />
-						Business Info
+						{t('settings.tabs.business')}
 					</TabsTrigger>
 					<TabsTrigger
 						value='receipts'
 						className='flex items-center gap-2'>
 						<Receipt className='w-4 h-4' />
-						Receipts
+						{t('settings.tabs.receipts')}
 					</TabsTrigger>
 					<TabsTrigger
 						value='features'
 						className='flex items-center gap-2'>
 						<TableIcon className='w-4 h-4' />
-						Features
+						{t('settings.tabs.features')}
 					</TabsTrigger>
 				</TabsList>
 
@@ -335,30 +403,43 @@ export default function SettingsPage() {
 					className='space-y-6'>
 					<Card>
 						<CardHeader>
-							<CardTitle>General Settings</CardTitle>
+							<CardTitle>{t('settings.tabs.general')}</CardTitle>
 							<CardDescription>
-								Basic configuration for your café
+								{t('settings.descriptions.general')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-6'>
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 								{/* Café Name */}
 								<div className='space-y-2'>
-									<Label htmlFor='cafeName'>Café Name</Label>
+									<Label htmlFor='cafeName'>
+										{t('settings.fields.cafeName')}
+									</Label>
 									<Input
 										id='cafeName'
 										value={formData.cafeName}
 										onChange={(e) =>
 											handleInputChange('cafeName', e.target.value)
 										}
-										placeholder='My Café'
+										placeholder={t('settings.placeholders.cafeName')}
+										aria-invalid={!!formErrors.cafeName}
+										aria-describedby={
+											formErrors.cafeName ? 'cafeName-error' : undefined
+										}
 									/>
+									{formErrors.cafeName && (
+										<p
+											className='text-sm text-destructive'
+											id='cafeName-error'>
+											{formErrors.cafeName}
+										</p>
+									)}
 								</div>
 
 								{/* Tax Rate */}
 								<div className='space-y-2'>
 									<Label htmlFor='taxRate'>
-										Tax Rate ({getCurrencySymbol()})
+										{t('settings.fields.taxRate')} ({getCurrencySymbol()})
 									</Label>
 									<div className='relative'>
 										<Input
@@ -375,23 +456,38 @@ export default function SettingsPage() {
 												)
 											}
 											className='pl-8'
+											aria-invalid={!!formErrors.taxRate}
+											aria-describedby={
+												formErrors.taxRate ? 'taxRate-error' : undefined
+											}
 										/>
 										<span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'>
 											%
 										</span>
 									</div>
+									{formErrors.taxRate && (
+										<p
+											className='text-sm text-destructive'
+											id='taxRate-error'>
+											{formErrors.taxRate}
+										</p>
+									)}
 								</div>
 
 								{/* Currency */}
 								<div className='space-y-2'>
-									<Label htmlFor='currency'>Currency</Label>
+									<Label htmlFor='currency'>
+										{t('settings.fields.currency')}
+									</Label>
 									<Select
 										value={formData.currency}
 										onValueChange={(value) =>
 											handleInputChange('currency', value)
 										}>
 										<SelectTrigger>
-											<SelectValue placeholder='Select currency' />
+											<SelectValue
+												placeholder={t('settings.placeholders.currency')}
+											/>
 										</SelectTrigger>
 										<SelectContent>
 											{CURRENCY_OPTIONS.map((currency) => (
@@ -407,14 +503,18 @@ export default function SettingsPage() {
 
 								{/* Timezone */}
 								<div className='space-y-2'>
-									<Label htmlFor='timezone'>Timezone</Label>
+									<Label htmlFor='timezone'>
+										{t('settings.fields.timezone')}
+									</Label>
 									<Select
 										value={formData.timezone}
 										onValueChange={(value) =>
 											handleInputChange('timezone', value)
 										}>
 										<SelectTrigger>
-											<SelectValue placeholder='Select timezone' />
+											<SelectValue
+												placeholder={t('settings.placeholders.timezone')}
+											/>
 										</SelectTrigger>
 										<SelectContent>
 											{TIMEZONE_OPTIONS.map((tz) => (
@@ -430,7 +530,9 @@ export default function SettingsPage() {
 
 								{/* Opening Hours */}
 								<div className='space-y-2'>
-									<Label htmlFor='openingHours'>Opening Hours</Label>
+									<Label htmlFor='openingHours'>
+										{t('settings.fields.openingHours')}
+									</Label>
 									<div className='relative'>
 										<Clock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 										<Input
@@ -447,7 +549,9 @@ export default function SettingsPage() {
 
 								{/* Closing Hours */}
 								<div className='space-y-2'>
-									<Label htmlFor='closingHours'>Closing Hours</Label>
+									<Label htmlFor='closingHours'>
+										{t('settings.fields.closingHours')}
+									</Label>
 									<div className='relative'>
 										<Clock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 										<Input
@@ -472,16 +576,18 @@ export default function SettingsPage() {
 					className='space-y-6'>
 					<Card>
 						<CardHeader>
-							<CardTitle>Business Information</CardTitle>
+							<CardTitle>{t('settings.tabs.business')}</CardTitle>
 							<CardDescription>
-								Your café contact and location details
+								{t('settings.descriptions.business')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-6'>
 							<div className='space-y-4'>
 								{/* Address */}
 								<div className='space-y-2'>
-									<Label htmlFor='address'>Address</Label>
+									<Label htmlFor='address'>
+										{t('settings.fields.address')}
+									</Label>
 									<div className='relative'>
 										<MapPin className='absolute left-3 top-3 text-muted-foreground w-4 h-4' />
 										<Textarea
@@ -490,8 +596,8 @@ export default function SettingsPage() {
 											onChange={(e) =>
 												handleInputChange('address', e.target.value)
 											}
-											placeholder='123 Café Street, City, Country'
-											className='pl-10 min-h-[80px]'
+											placeholder={t('settings.placeholders.address')}
+											className='pl-10 min-h-20'
 										/>
 									</div>
 								</div>
@@ -499,7 +605,7 @@ export default function SettingsPage() {
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 									{/* Phone */}
 									<div className='space-y-2'>
-										<Label htmlFor='phone'>Phone Number</Label>
+										<Label htmlFor='phone'>{t('settings.fields.phone')}</Label>
 										<div className='relative'>
 											<Phone className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 											<Input
@@ -509,7 +615,7 @@ export default function SettingsPage() {
 												onChange={(e) =>
 													handleInputChange('phone', e.target.value)
 												}
-												placeholder='+1 (555) 123-4567'
+												placeholder={t('settings.placeholders.phone')}
 												className='pl-10'
 											/>
 										</div>
@@ -517,7 +623,7 @@ export default function SettingsPage() {
 
 									{/* Email */}
 									<div className='space-y-2'>
-										<Label htmlFor='email'>Email Address</Label>
+										<Label htmlFor='email'>{t('settings.fields.email')}</Label>
 										<div className='relative'>
 											<Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 											<Input
@@ -527,16 +633,29 @@ export default function SettingsPage() {
 												onChange={(e) =>
 													handleInputChange('email', e.target.value)
 												}
-												placeholder='contact@mycafe.com'
+												placeholder={t('settings.placeholders.email')}
 												className='pl-10'
+												aria-invalid={!!formErrors.email}
+												aria-describedby={
+													formErrors.email ? 'email-error' : undefined
+												}
 											/>
 										</div>
+										{formErrors.email && (
+											<p
+												className='text-sm text-destructive'
+												id='email-error'>
+												{formErrors.email}
+											</p>
+										)}
 									</div>
 								</div>
 
 								{/* Logo URL */}
 								<div className='space-y-2'>
-									<Label htmlFor='logoUrl'>Logo URL</Label>
+									<Label htmlFor='logoUrl'>
+										{t('settings.fields.logoUrl')}
+									</Label>
 									<div className='relative'>
 										<ImageIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 										<Input
@@ -545,13 +664,12 @@ export default function SettingsPage() {
 											onChange={(e) =>
 												handleInputChange('logoUrl', e.target.value)
 											}
-											placeholder='https://example.com/logo.png'
+											placeholder={t('settings.placeholders.logoUrl')}
 											className='pl-10'
 										/>
 									</div>
 									<p className='text-xs text-muted-foreground'>
-										Enter the URL of your café logo. This will appear on
-										receipts.
+										{t('settings.descriptions.logoUrl')}
 									</p>
 								</div>
 							</div>
@@ -565,38 +683,42 @@ export default function SettingsPage() {
 					className='space-y-6'>
 					<Card>
 						<CardHeader>
-							<CardTitle>Receipt Configuration</CardTitle>
+							<CardTitle>{t('settings.tabs.receipts')}</CardTitle>
 							<CardDescription>
-								Customize receipt content and behavior
+								{t('settings.descriptions.receipts')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-6'>
 							<div className='space-y-4'>
 								{/* Receipt Header */}
 								<div className='space-y-2'>
-									<Label htmlFor='receiptHeader'>Receipt Header Message</Label>
+									<Label htmlFor='receiptHeader'>
+										{t('settings.fields.receiptHeader')}
+									</Label>
 									<Textarea
 										id='receiptHeader'
 										value={formData.receiptHeader}
 										onChange={(e) =>
 											handleInputChange('receiptHeader', e.target.value)
 										}
-										placeholder='Thank you for your visit!'
-										className='min-h-[80px]'
+										placeholder={t('settings.placeholders.receiptHeader')}
+										className='min-h-20'
 									/>
 								</div>
 
 								{/* Receipt Footer */}
 								<div className='space-y-2'>
-									<Label htmlFor='receiptFooter'>Receipt Footer Message</Label>
+									<Label htmlFor='receiptFooter'>
+										{t('settings.fields.receiptFooter')}
+									</Label>
 									<Textarea
 										id='receiptFooter'
 										value={formData.receiptFooter}
 										onChange={(e) =>
 											handleInputChange('receiptFooter', e.target.value)
 										}
-										placeholder='Have a great day!'
-										className='min-h-[80px]'
+										placeholder={t('settings.placeholders.receiptFooter')}
+										className='min-h-20'
 									/>
 								</div>
 
@@ -608,10 +730,10 @@ export default function SettingsPage() {
 										<Label
 											htmlFor='autoPrintReceipts'
 											className='text-base'>
-											Auto Print Receipts
+											{t('settings.fields.autoPrintReceipts')}
 										</Label>
 										<p className='text-sm text-muted-foreground'>
-											Automatically print receipts after payment
+											{t('settings.descriptions.autoPrintReceipts')}
 										</p>
 									</div>
 									<Switch
@@ -633,9 +755,9 @@ export default function SettingsPage() {
 					className='space-y-6'>
 					<Card>
 						<CardHeader>
-							<CardTitle>Feature Settings</CardTitle>
+							<CardTitle>{t('settings.tabs.features')}</CardTitle>
 							<CardDescription>
-								Enable or disable various café features
+								{t('settings.descriptions.features')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-6'>
@@ -646,10 +768,10 @@ export default function SettingsPage() {
 										<Label
 											htmlFor='enableTableReservation'
 											className='text-base'>
-											Table Reservation
+											{t('settings.fields.enableTableReservation')}
 										</Label>
 										<p className='text-sm text-muted-foreground'>
-											Allow customers to reserve tables
+											{t('settings.descriptions.enableTableReservation')}
 										</p>
 									</div>
 									<Switch
@@ -667,10 +789,10 @@ export default function SettingsPage() {
 										<Label
 											htmlFor='enableOnlineOrders'
 											className='text-base'>
-											Online Orders
+											{t('settings.fields.enableOnlineOrders')}
 										</Label>
 										<p className='text-sm text-muted-foreground'>
-											Enable online order placement
+											{t('settings.descriptions.enableOnlineOrders')}
 										</p>
 									</div>
 									<Switch
@@ -688,10 +810,10 @@ export default function SettingsPage() {
 										<Label
 											htmlFor='requireCustomerName'
 											className='text-base'>
-											Require Customer Name
+											{t('settings.fields.requireCustomerName')}
 										</Label>
 										<p className='text-sm text-muted-foreground'>
-											Force cashiers to enter customer name for orders
+											{t('settings.descriptions.requireCustomerName')}
 										</p>
 									</div>
 									<Switch
@@ -707,7 +829,9 @@ export default function SettingsPage() {
 
 								{/* Low Stock Threshold */}
 								<div className='space-y-2'>
-									<Label htmlFor='lowStockThreshold'>Low Stock Threshold</Label>
+									<Label htmlFor='lowStockThreshold'>
+										{t('settings.fields.lowStockThreshold')}
+									</Label>
 									<div className='flex items-center gap-4'>
 										<Input
 											id='lowStockThreshold'
@@ -721,12 +845,24 @@ export default function SettingsPage() {
 												)
 											}
 											className='w-32'
+											aria-invalid={!!formErrors.lowStockThreshold}
+											aria-describedby={
+												formErrors.lowStockThreshold ?
+													'lowStockThreshold-error'
+												:	undefined
+											}
 										/>
 										<span className='text-sm text-muted-foreground'>
-											items (Items with stock below this will be marked as low
-											stock)
+											{t('settings.descriptions.lowStockThreshold')}
 										</span>
 									</div>
+									{formErrors.lowStockThreshold && (
+										<p
+											className='text-sm text-destructive'
+											id='lowStockThreshold-error'>
+											{formErrors.lowStockThreshold}
+										</p>
+									)}
 								</div>
 							</div>
 						</CardContent>
@@ -735,37 +871,51 @@ export default function SettingsPage() {
 					{/* Preview Card */}
 					<Card>
 						<CardHeader>
-							<CardTitle>Preview</CardTitle>
+							<CardTitle>{t('settings.preview.title')}</CardTitle>
 							<CardDescription>
-								See how your settings affect the system
+								{t('settings.preview.description')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className='space-y-4 p-4 border rounded-lg bg-muted/30'>
 								<div className='flex items-center justify-between'>
-									<span className='font-medium'>Café Name:</span>
-									<span>{formData.cafeName || 'My Café'}</span>
+									<span className='font-medium'>
+										{t('settings.fields.cafeName')}:
+									</span>
+									<span>
+										{formData.cafeName || t('settings.placeholders.cafeName')}
+									</span>
 								</div>
 								<div className='flex items-center justify-between'>
-									<span className='font-medium'>Tax Rate:</span>
+									<span className='font-medium'>
+										{t('settings.fields.taxRate')}:
+									</span>
 									<span>{formData.taxRate}%</span>
 								</div>
 								<div className='flex items-center justify-between'>
-									<span className='font-medium'>Currency:</span>
+									<span className='font-medium'>
+										{t('settings.fields.currency')}:
+									</span>
 									<span>
 										{getCurrencySymbol()} ({formData.currency})
 									</span>
 								</div>
 								<div className='flex items-center justify-between'>
-									<span className='font-medium'>Business Hours:</span>
+									<span className='font-medium'>
+										{t('settings.fields.businessHours')}:
+									</span>
 									<span>
 										{formData.openingHours} - {formData.closingHours}
 									</span>
 								</div>
 								<div className='flex items-center justify-between'>
-									<span className='font-medium'>Low Stock Alert:</span>
+									<span className='font-medium'>
+										{t('settings.fields.lowStockAlert')}:
+									</span>
 									<span>
-										When stock is below {formData.lowStockThreshold} items
+										{t('settings.preview.lowStockAlert', {
+											threshold: formData.lowStockThreshold,
+										})}
 									</span>
 								</div>
 							</div>
@@ -773,54 +923,6 @@ export default function SettingsPage() {
 					</Card>
 				</TabsContent>
 			</Tabs>
-
-			{/* Save Button at Bottom
-			<div className='sticky bottom-6 mt-8 flex justify-end'>
-				<Card className='shadow-lg'>
-					<CardContent className='pt-6'>
-						<div className='flex items-center justify-between'>
-							<div>
-								<p className='font-medium'>Unsaved Changes</p>
-								<p className='text-sm text-muted-foreground'>
-									Click save to apply your changes
-								</p>
-							</div>
-							<div className='flex gap-2'>
-								<Button
-									variant='outline'
-									onClick={handleResetSettings}
-									disabled={
-										resetSettingsMutation.isPending ||
-										updateSettingsMutation.isPending
-									}>
-									{resetSettingsMutation.isPending ?
-										<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-									:	<RotateCcw className='w-4 h-4 mr-2' />}
-									Reset
-								</Button>
-								<Button
-									onClick={handleSaveSettings}
-									disabled={
-										updateSettingsMutation.isPending ||
-										resetSettingsMutation.isPending
-									}
-									className='min-w-32'>
-									{updateSettingsMutation.isPending ?
-										<>
-											<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-											Saving...
-										</>
-									:	<>
-											<Save className='w-4 h-4 mr-2' />
-											Save Changes
-										</>
-									}
-								</Button>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div> */}
 		</div>
 	);
 }

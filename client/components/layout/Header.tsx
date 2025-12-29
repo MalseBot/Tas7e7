@@ -7,7 +7,12 @@ import { useState } from 'react';
 import { Menu, Bell, User, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+	Sheet,
+	SheetContent,
+	SheetTitle,
+	SheetTrigger,
+} from '@/components/ui/sheet';
 import { NotificationDropdown } from './notification-dropdown';
 import {
 	DropdownMenu,
@@ -20,8 +25,27 @@ import {
 import { ThemeSwitch } from './theme-toggle';
 import { Sidebar } from './sidebar';
 import Link from 'next/link';
+import { LanguageSwitcher } from './language-switcher';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { settingsService } from '@/lib/api/services';
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 export function Header() {
+	const { t,isRTL } = useTranslation();
+	const router = useRouter()
+	const handleLogout = () => {
+		localStorage.removeItem('token');
+		localStorage.removeItem('user');
+		router.push('/login');
+	};
+	const { data: settings } = useQuery({
+		queryKey: ['get-settings'],
+		queryFn: () =>
+			settingsService.getSettings(),
+	});
+
+	
 
 	return (
 		<header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60'>
@@ -33,27 +57,25 @@ export function Header() {
 						<SheetTrigger asChild>
 							<Button
 								variant='ghost'
-								size='icon'
-								className='lg:hidden'>
+								size='icon'>
 								<Menu className='h-5 w-5' />
-								<span className='sr-only'>Toggle menu</span>
+								<span className='sr-only'>{t('common.menu')}</span>
 							</Button>
 						</SheetTrigger>
 						<SheetContent
-							side='left'
+							side={isRTL? "right" : "left"}
 							className='w-64'>
 							<SheetTitle>
 								{/* Logo */}
 								<div className='p-6 border-b border-border '>
 									<Link
 										href='/dashboard'
-										className='flex items-center gap-2 ps-10'
-										>
+										className='flex items-center gap-2 ps-10'>
 										<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
 											<Home className='w-5 h-5 text-white' />
 										</div>
 										<span className='text-xl font-bold text-foreground'>
-											Café POS
+											{settings?.data.data.cafeName}
 										</span>
 									</Link>
 								</div>
@@ -67,7 +89,9 @@ export function Header() {
 						<div className='h-8 w-8 rounded-md bg-primary flex items-center justify-center'>
 							<span className='text-primary-foreground font-bold'>C</span>
 						</div>
-						<h1 className='text-xl font-bold hidden sm:block'>Café POS</h1>
+						<h1 className='text-xl font-bold hidden sm:block'>
+							{settings?.data.data.cafeName}
+						</h1>
 					</div>
 				</div>
 
@@ -75,7 +99,7 @@ export function Header() {
 				<div className='flex items-center gap-2'>
 					{/* Theme Toggle */}
 					<ThemeSwitch />
-
+					<LanguageSwitcher />
 					{/* Notifications */}
 					<NotificationDropdown />
 
@@ -87,17 +111,19 @@ export function Header() {
 								size='icon'
 								className='rounded-full'>
 								<User className='h-5 w-5' />
-								<span className='sr-only'>User menu</span>
+								<span className='sr-only'>{t('common.user')}</span>
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align='end'>
-							<DropdownMenuLabel>My Account</DropdownMenuLabel>
+							<DropdownMenuLabel>{t('common.myAccount')}</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem>Profile</DropdownMenuItem>
-							<DropdownMenuItem>Settings</DropdownMenuItem>
+							<DropdownMenuItem>{t('common.profile')}</DropdownMenuItem>
+							<DropdownMenuItem>{t('common.settings')}</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className='text-destructive'>
-								Logout
+							<DropdownMenuItem
+								className='text-destructive'
+								onClick={handleLogout}>
+								{t('common.logout')}
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>

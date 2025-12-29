@@ -65,6 +65,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast, useToast } from '@/lib/hooks/use-toast';
 import { staffService } from '@/lib/api/services';
 import { useNotificationActions } from '@/lib/hooks/useNotificationActions.ts';
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 interface StaffMember {
 	_id: string;
@@ -82,7 +83,17 @@ interface StaffStats {
 	stats: Array<{ role: string; count: number; active: number }>;
 }
 
+interface ApiError {
+	response?: {
+		data?: {
+			error?: string;
+		};
+	};
+	message?: string;
+}
+
 export default function StaffPage() {
+	const { t } = useTranslation();
 	const { notifySuccess, notifyError, notifyInfo } = useNotificationActions();
 
 	const queryClient = useQueryClient();
@@ -129,12 +140,11 @@ export default function StaffPage() {
 		mutationFn: (data: any) => staffService.createStaff(data),
 		onSuccess: (data) => {
 			notifySuccess(
-				'Staff Added',
-				`${data.data.data.name} has been added to the staff`,
+				t('staff.addSuccess.title'),
+				t('staff.addSuccess.message', { name: data.data.data.name }),
 				{
-					label: 'View Staff',
+					label: t('common.view'),
 					onClick: () => {
-						// Navigate to staff details if needed
 						console.log('View staff:', data.data.data._id);
 					},
 				}
@@ -144,10 +154,10 @@ export default function StaffPage() {
 			queryClient.invalidateQueries({ queryKey: ['staff'] });
 			queryClient.invalidateQueries({ queryKey: ['staff-stats'] });
 		},
-		onError: (error: any) => {
+		onError: (error: ApiError) => {
 			notifyError(
-				'Add Staff Failed',
-				error.response?.data?.error || 'Failed to add staff member'
+				t('staff.addError.title'),
+				error.response?.data?.error || t('staff.addError.message')
 			);
 		},
 	});
@@ -158,18 +168,20 @@ export default function StaffPage() {
 			staffService.updateStaff(id, data),
 		onSuccess: (data, variables) => {
 			notifySuccess(
-				'Staff Updated',
-				`${variables.data.name || 'Staff member'} has been updated`
+				t('staff.updateSuccess.title'),
+				t('staff.updateSuccess.message', {
+					name: variables.data.name || t('staff.table.name'),
+				})
 			);
 			setShowEditDialog(false);
 			resetForm();
 			queryClient.invalidateQueries({ queryKey: ['staff'] });
 			queryClient.invalidateQueries({ queryKey: ['staff-stats'] });
 		},
-		onError: (error: any) => {
+		onError: (error: ApiError) => {
 			notifyError(
-				'Update Failed',
-				error.response?.data?.error || 'Failed to update staff member'
+				t('staff.updateError.title'),
+				error.response?.data?.error || t('staff.updateError.message')
 			);
 		},
 	});
@@ -178,17 +190,14 @@ export default function StaffPage() {
 	const deleteStaffMutation = useMutation({
 		mutationFn: (id: string) => staffService.deleteStaff(id),
 		onSuccess: (_, id) => {
-			notifyInfo(
-				'Staff Deleted',
-				'Staff member has been removed from the system'
-			);
+			notifyInfo(t('staff.deleteInfo.title'), t('staff.deleteInfo.message'));
 			queryClient.invalidateQueries({ queryKey: ['staff'] });
 			queryClient.invalidateQueries({ queryKey: ['staff-stats'] });
 		},
-		onError: (error: any) => {
+		onError: (error: ApiError) => {
 			notifyError(
-				'Delete Failed',
-				error.response?.data?.error || 'Failed to delete staff member'
+				t('staff.deleteError.title'),
+				error.response?.data?.error || t('staff.deleteError.message')
 			);
 		},
 	});
@@ -199,14 +208,22 @@ export default function StaffPage() {
 			staffService.updateStaff(id, { isActive }),
 		onSuccess: (_, variables) => {
 			notifySuccess(
-				'Status Updated',
-				`Staff member ${variables.isActive ? 'activated' : 'deactivated'}`
+				t('staff.statusSuccess.title'),
+				t('staff.statusSuccess.message', {
+					status:
+						variables.isActive ?
+							t('staff.status.activated')
+						:	t('staff.status.deactivated'),
+				})
 			);
 			queryClient.invalidateQueries({ queryKey: ['staff'] });
 			queryClient.invalidateQueries({ queryKey: ['staff-stats'] });
 		},
-		onError: (error: any) => {
-			notifyError('Status Update Failed', 'Failed to update staff status');
+		onError: (error: ApiError) => {
+			notifyError(
+				t('staff.statusError.title'),
+				error.response?.data?.error || t('staff.statusError.message')
+			);
 		},
 	});
 
@@ -214,8 +231,8 @@ export default function StaffPage() {
 	const handleAddStaff = () => {
 		if (formData.password !== formData.confirmPassword) {
 			toast({
-				title: 'Error',
-				description: 'Passwords do not match',
+				title: t('common.error'),
+				description: t('staff.validation.passwordsMismatch'),
 				variant: 'destructive',
 			});
 			return;
@@ -247,7 +264,7 @@ export default function StaffPage() {
 
 	// Handle delete staff
 	const handleDeleteStaff = (id: string) => {
-		if (!confirm('Are you sure you want to delete this staff member?')) return;
+		if (!confirm(t('staff.validation.deleteConfirmation'))) return;
 		deleteStaffMutation.mutate(id);
 	};
 
@@ -331,7 +348,7 @@ export default function StaffPage() {
 			<div className='container mx-auto px-4 py-8'>
 				<div className='flex items-center justify-center h-64'>
 					<Loader2 className='w-8 h-8 animate-spin' />
-					<span className='ml-2'>Loading staff data...</span>
+					<span className='ml-2'>{t('common.loading')}...</span>
 				</div>
 			</div>
 		);
@@ -345,15 +362,15 @@ export default function StaffPage() {
 					<CardContent className='pt-6'>
 						<div className='text-center py-8'>
 							<Users className='w-12 h-12 mx-auto mb-4 text-muted-foreground' />
-							<h3 className='text-lg font-medium'>Failed to load staff data</h3>
+							<h3 className='text-lg font-medium'>{t('common.error')}</h3>
 							<p className='text-muted-foreground mt-2'>
-								There was an error loading the staff information.
+								{t('errors.loadingFailed')}
 							</p>
 							<Button
 								onClick={() => refetchStaff()}
 								className='mt-4'>
 								<RefreshCw className='w-4 h-4 mr-2' />
-								Try Again
+								{t('errors.tryAgain')}
 							</Button>
 						</div>
 					</CardContent>
@@ -369,15 +386,13 @@ export default function StaffPage() {
 				<div className='flex items-center justify-between'>
 					<div>
 						<h1 className='text-2xl font-bold text-foreground'>
-							Staff Management
+							{t('staff.title')}
 						</h1>
-						<p className='text-muted-foreground mt-2'>
-							Manage staff members, roles, and permissions
-						</p>
+						<p className='text-muted-foreground mt-2'>{t('staff.subtitle')}</p>
 					</div>
 					<Button onClick={() => setShowAddDialog(true)}>
 						<UserPlus className='w-4 h-4 mr-2' />
-						Add Staff
+						{t('staff.addStaff')}
 					</Button>
 				</div>
 			</div>
@@ -387,47 +402,52 @@ export default function StaffPage() {
 				<div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-8'>
 					<Card>
 						<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-							<CardTitle className='text-sm font-medium'>Total Staff</CardTitle>
+							<CardTitle className='text-sm font-medium'>
+								{t('staff.stats.totalStaff')}
+							</CardTitle>
 							<Users className='h-4 w-4 text-muted-foreground' />
 						</CardHeader>
 						<CardContent>
 							<div className='text-2xl font-bold'>{statsData.total}</div>
 							<p className='text-xs text-muted-foreground'>
-								{statsData.active} active, {statsData.inactive} inactive
+								{statsData.active} {t('common.active')}, {statsData.inactive}{' '}
+								{t('common.inactive')}
 							</p>
 						</CardContent>
 					</Card>
 					<Card>
 						<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
 							<CardTitle className='text-sm font-medium'>
-								Active Staff
+								{t('staff.stats.activeStaff')}
 							</CardTitle>
 							<UserCheck className='h-4 w-4 text-muted-foreground' />
 						</CardHeader>
 						<CardContent>
 							<div className='text-2xl font-bold'>{statsData.active}</div>
 							<p className='text-xs text-muted-foreground'>
-								Currently active staff members
+								{t('staff.stats.currentlyActive')}
 							</p>
 						</CardContent>
 					</Card>
 					<Card>
 						<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
 							<CardTitle className='text-sm font-medium'>
-								Inactive Staff
+								{t('staff.stats.inactiveStaff')}
 							</CardTitle>
 							<UserX className='h-4 w-4 text-muted-foreground' />
 						</CardHeader>
 						<CardContent>
 							<div className='text-2xl font-bold'>{statsData.inactive}</div>
 							<p className='text-xs text-muted-foreground'>
-								Staff members not active
+								{t('staff.stats.notActive')}
 							</p>
 						</CardContent>
 					</Card>
 					<Card>
 						<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-							<CardTitle className='text-sm font-medium'>Roles</CardTitle>
+							<CardTitle className='text-sm font-medium'>
+								{t('staff.stats.roles')}
+							</CardTitle>
 							<Filter className='h-4 w-4 text-muted-foreground' />
 						</CardHeader>
 						<CardContent>
@@ -451,12 +471,12 @@ export default function StaffPage() {
 				<CardContent className='pt-6'>
 					<div className='flex flex-col md:flex-row gap-4'>
 						<div className='flex-1'>
-							<Label htmlFor='search'>Search</Label>
+							<Label htmlFor='search'>{t('common.search')}</Label>
 							<div className='relative'>
 								<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
 								<Input
 									id='search'
-									placeholder='Search by name or email...'
+									placeholder={t('staff.filters.search')}
 									className='pl-10'
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
@@ -464,33 +484,45 @@ export default function StaffPage() {
 							</div>
 						</div>
 						<div>
-							<Label htmlFor='role'>Role</Label>
+							<Label htmlFor='role'>{t('staff.filters.role')}</Label>
 							<Select
 								value={roleFilter}
 								onValueChange={setRoleFilter}>
 								<SelectTrigger>
-									<SelectValue placeholder='All Roles' />
+									<SelectValue placeholder={t('staff.filters.allRoles')} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='all'>All Roles</SelectItem>
-									<SelectItem value='admin'>Admin</SelectItem>
-									<SelectItem value='manager'>Manager</SelectItem>
-									<SelectItem value='cashier'>Cashier</SelectItem>
+									<SelectItem value='all'>
+										{t('staff.filters.allRoles')}
+									</SelectItem>
+									<SelectItem value='admin'>
+										{t('staff.roles.admin')}
+									</SelectItem>
+									<SelectItem value='manager'>
+										{t('staff.roles.manager')}
+									</SelectItem>
+									<SelectItem value='cashier'>
+										{t('staff.roles.cashier')}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
 						<div>
-							<Label htmlFor='status'>Status</Label>
+							<Label htmlFor='status'>{t('staff.filters.status')}</Label>
 							<Select
 								value={statusFilter}
 								onValueChange={setStatusFilter}>
 								<SelectTrigger>
-									<SelectValue placeholder='All Status' />
+									<SelectValue placeholder={t('staff.filters.allStatus')} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='all'>All Status</SelectItem>
-									<SelectItem value='active'>Active</SelectItem>
-									<SelectItem value='inactive'>Inactive</SelectItem>
+									<SelectItem value='all'>
+										{t('staff.filters.allStatus')}
+									</SelectItem>
+									<SelectItem value='active'>{t('common.active')}</SelectItem>
+									<SelectItem value='inactive'>
+										{t('common.inactive')}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -503,7 +535,7 @@ export default function StaffPage() {
 									setStatusFilter('all');
 								}}>
 								<RefreshCw className='w-4 h-4 mr-2' />
-								Reset
+								{t('staff.filters.reset')}
 							</Button>
 						</div>
 					</div>
@@ -513,29 +545,33 @@ export default function StaffPage() {
 			{/* Staff Table */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Staff Members</CardTitle>
+					<CardTitle>{t('staff.table.title')}</CardTitle>
 					<CardDescription>
-						{filteredStaff.length} staff members found
+						{t('staff.table.staffFound', { count: filteredStaff.length })}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{filteredStaff.length === 0 ?
 						<div className='text-center py-8'>
 							<Users className='w-12 h-12 mx-auto mb-4 text-muted-foreground' />
-							<p className='text-lg font-medium'>No staff members found</p>
+							<p className='text-lg font-medium'>
+								{t('staff.table.noStaffFound')}
+							</p>
 							<p className='text-muted-foreground mt-2'>
-								Try adjusting your filters or add a new staff member
+								{t('staff.table.noStaffMessage')}
 							</p>
 						</div>
 					:	<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Name</TableHead>
-									<TableHead>Email</TableHead>
-									<TableHead>Role</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Joined Date</TableHead>
-									<TableHead className='text-right'>Actions</TableHead>
+									<TableHead>{t('staff.table.name')}</TableHead>
+									<TableHead>{t('staff.table.email')}</TableHead>
+									<TableHead>{t('staff.table.role')}</TableHead>
+									<TableHead>{t('staff.table.status')}</TableHead>
+									<TableHead>{t('staff.table.joinedDate')}</TableHead>
+									<TableHead className='text-right'>
+										{t('staff.table.actions')}
+									</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -545,7 +581,7 @@ export default function StaffPage() {
 										<TableCell>{member.email}</TableCell>
 										<TableCell>
 											<Badge className={getRoleColor(member.role)}>
-												{member.role}
+												{t(`staff.roles.${member.role}`)}
 											</Badge>
 										</TableCell>
 										<TableCell>
@@ -553,7 +589,9 @@ export default function StaffPage() {
 												variant={member.isActive ? 'default' : 'secondary'}
 												className='cursor-pointer'
 												onClick={() => handleToggleActive(member)}>
-												{member.isActive ? 'Active' : 'Inactive'}
+												{member.isActive ?
+													t('common.active')
+												:	t('common.inactive')}
 											</Badge>
 										</TableCell>
 										<TableCell>{formatDate(member.createdAt)}</TableCell>
@@ -567,23 +605,25 @@ export default function StaffPage() {
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align='end'>
-													<DropdownMenuLabel>Actions</DropdownMenuLabel>
+													<DropdownMenuLabel>
+														{t('staff.table.actions')}
+													</DropdownMenuLabel>
 													<DropdownMenuSeparator />
 													<DropdownMenuItem
 														onClick={() => openEditDialog(member)}>
 														<Edit className='w-4 h-4 mr-2' />
-														Edit
+														{t('staff.table.edit')}
 													</DropdownMenuItem>
 													<DropdownMenuItem
 														onClick={() => handleToggleActive(member)}>
 														{member.isActive ?
 															<>
 																<UserX className='w-4 h-4 mr-2' />
-																Deactivate
+																{t('staff.table.deactivate')}
 															</>
 														:	<>
 																<UserCheck className='w-4 h-4 mr-2' />
-																Activate
+																{t('staff.table.activate')}
 															</>
 														}
 													</DropdownMenuItem>
@@ -593,7 +633,7 @@ export default function StaffPage() {
 														onClick={() => handleDeleteStaff(member._id)}
 														disabled={deleteStaffMutation.isPending}>
 														<Trash2 className='w-4 h-4 mr-2' />
-														Delete
+														{t('staff.table.delete')}
 													</DropdownMenuItem>
 												</DropdownMenuContent>
 											</DropdownMenu>
@@ -612,14 +652,14 @@ export default function StaffPage() {
 				onOpenChange={setShowAddDialog}>
 				<DialogContent className='sm:max-w-125'>
 					<DialogHeader>
-						<DialogTitle>Add New Staff Member</DialogTitle>
+						<DialogTitle>{t('staff.dialogs.addTitle')}</DialogTitle>
 						<DialogDescription>
-							Fill in the details to add a new staff member to the system.
+							{t('staff.dialogs.addDescription')}
 						</DialogDescription>
 					</DialogHeader>
 					<div className='grid gap-4 py-4'>
 						<div className='grid gap-2'>
-							<Label htmlFor='name'>Full Name *</Label>
+							<Label htmlFor='name'>{t('staff.dialogs.fullName')}</Label>
 							<Input
 								id='name'
 								value={formData.name}
@@ -632,7 +672,7 @@ export default function StaffPage() {
 							/>
 						</div>
 						<div className='grid gap-2'>
-							<Label htmlFor='email'>Email Address *</Label>
+							<Label htmlFor='email'>{t('staff.dialogs.emailAddress')}</Label>
 							<Input
 								id='email'
 								type='email'
@@ -647,7 +687,7 @@ export default function StaffPage() {
 						</div>
 						<div className='grid grid-cols-2 gap-4'>
 							<div className='grid gap-2'>
-								<Label htmlFor='password'>Password *</Label>
+								<Label htmlFor='password'>{t('staff.dialogs.password')}</Label>
 								<Input
 									id='password'
 									type='password'
@@ -660,7 +700,9 @@ export default function StaffPage() {
 								/>
 							</div>
 							<div className='grid gap-2'>
-								<Label htmlFor='confirmPassword'>Confirm Password *</Label>
+								<Label htmlFor='confirmPassword'>
+									{t('staff.dialogs.confirmPassword')}
+								</Label>
 								<Input
 									id='confirmPassword'
 									type='password'
@@ -678,7 +720,7 @@ export default function StaffPage() {
 						</div>
 						<div className='grid grid-cols-2 gap-4'>
 							<div className='grid gap-2'>
-								<Label htmlFor='role'>Role *</Label>
+								<Label htmlFor='role'>{t('staff.dialogs.role')}</Label>
 								<Select
 									value={formData.role}
 									onValueChange={(value: 'cashier' | 'manager' | 'admin') =>
@@ -686,17 +728,23 @@ export default function StaffPage() {
 									}
 									disabled={createStaffMutation.isPending}>
 									<SelectTrigger>
-										<SelectValue placeholder='Select role' />
+										<SelectValue placeholder={t('common.select')} />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value='cashier'>Cashier</SelectItem>
-										<SelectItem value='manager'>Manager</SelectItem>
-										<SelectItem value='admin'>Admin</SelectItem>
+										<SelectItem value='cashier'>
+											{t('staff.roles.cashier')}
+										</SelectItem>
+										<SelectItem value='manager'>
+											{t('staff.roles.manager')}
+										</SelectItem>
+										<SelectItem value='admin'>
+											{t('staff.roles.admin')}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<div className='grid gap-2'>
-								<Label htmlFor='pin'>PIN Code</Label>
+								<Label htmlFor='pin'>{t('staff.dialogs.pinCode')}</Label>
 								<Input
 									id='pin'
 									value={formData.pin}
@@ -708,7 +756,7 @@ export default function StaffPage() {
 									disabled={createStaffMutation.isPending}
 								/>
 								<p className='text-xs text-muted-foreground'>
-									4-digit PIN for quick login
+									{t('staff.dialogs.pinDescription')}
 								</p>
 							</div>
 						</div>
@@ -721,7 +769,7 @@ export default function StaffPage() {
 								}
 								disabled={createStaffMutation.isPending}
 							/>
-							<Label htmlFor='isActive'>Active Staff Member</Label>
+							<Label htmlFor='isActive'>{t('staff.dialogs.activeStaff')}</Label>
 						</div>
 					</div>
 					<DialogFooter>
@@ -729,7 +777,7 @@ export default function StaffPage() {
 							variant='outline'
 							onClick={() => setShowAddDialog(false)}
 							disabled={createStaffMutation.isPending}>
-							Cancel
+							{t('staff.dialogs.cancel')}
 						</Button>
 						<Button
 							onClick={handleAddStaff}
@@ -737,9 +785,9 @@ export default function StaffPage() {
 							{createStaffMutation.isPending ?
 								<>
 									<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-									Adding...
+									{t('staff.dialogs.adding')}
 								</>
-							:	'Add Staff Member'}
+							:	t('staff.dialogs.addButton')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -751,15 +799,14 @@ export default function StaffPage() {
 				onOpenChange={setShowEditDialog}>
 				<DialogContent className='sm:max-w-125'>
 					<DialogHeader>
-						<DialogTitle>Edit Staff Member</DialogTitle>
+						<DialogTitle>{t('staff.dialogs.editTitle')}</DialogTitle>
 						<DialogDescription>
-							Update staff member details. Leave password fields empty to keep
-							current password.
+							{t('staff.dialogs.editDescription')}
 						</DialogDescription>
 					</DialogHeader>
 					<div className='grid gap-4 py-4'>
 						<div className='grid gap-2'>
-							<Label htmlFor='edit-name'>Full Name</Label>
+							<Label htmlFor='edit-name'>{t('staff.dialogs.fullName')}</Label>
 							<Input
 								id='edit-name'
 								value={formData.name}
@@ -770,7 +817,9 @@ export default function StaffPage() {
 							/>
 						</div>
 						<div className='grid gap-2'>
-							<Label htmlFor='edit-email'>Email Address</Label>
+							<Label htmlFor='edit-email'>
+								{t('staff.dialogs.emailAddress')}
+							</Label>
 							<Input
 								id='edit-email'
 								type='email'
@@ -782,7 +831,7 @@ export default function StaffPage() {
 							/>
 						</div>
 						<div className='grid gap-2'>
-							<Label htmlFor='edit-role'>Role</Label>
+							<Label htmlFor='edit-role'>{t('staff.dialogs.role')}</Label>
 							<Select
 								value={formData.role}
 								onValueChange={(value: 'cashier' | 'manager' | 'admin') =>
@@ -790,12 +839,18 @@ export default function StaffPage() {
 								}
 								disabled={updateStaffMutation.isPending}>
 								<SelectTrigger>
-									<SelectValue placeholder='Select role' />
+									<SelectValue placeholder={t('common.select')} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='cashier'>Cashier</SelectItem>
-									<SelectItem value='manager'>Manager</SelectItem>
-									<SelectItem value='admin'>Admin</SelectItem>
+									<SelectItem value='cashier'>
+										{t('staff.roles.cashier')}
+									</SelectItem>
+									<SelectItem value='manager'>
+										{t('staff.roles.manager')}
+									</SelectItem>
+									<SelectItem value='admin'>
+										{t('staff.roles.admin')}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -808,7 +863,9 @@ export default function StaffPage() {
 								}
 								disabled={updateStaffMutation.isPending}
 							/>
-							<Label htmlFor='edit-isActive'>Active Staff Member</Label>
+							<Label htmlFor='edit-isActive'>
+								{t('staff.dialogs.activeStaff')}
+							</Label>
 						</div>
 					</div>
 					<DialogFooter>
@@ -816,7 +873,7 @@ export default function StaffPage() {
 							variant='outline'
 							onClick={() => setShowEditDialog(false)}
 							disabled={updateStaffMutation.isPending}>
-							Cancel
+							{t('staff.dialogs.cancel')}
 						</Button>
 						<Button
 							onClick={handleUpdateStaff}
@@ -824,9 +881,9 @@ export default function StaffPage() {
 							{updateStaffMutation.isPending ?
 								<>
 									<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-									Updating...
+									{t('staff.dialogs.updating')}
 								</>
-							:	'Update Staff Member'}
+							:	t('staff.dialogs.updateButton')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

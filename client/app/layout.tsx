@@ -7,6 +7,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/providers';
 import { NotificationProvider } from '@/lib/constants/notification-context';
+import '../lib/i18n'; // Add this import at the top
 
 const inter = Inter({ subsets: ['latin'] });
 

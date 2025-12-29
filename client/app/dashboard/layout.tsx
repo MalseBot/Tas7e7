@@ -17,12 +17,6 @@ export default function DashboardLayout({
 	const router = useRouter();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	const handleLogout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('user');
-		router.push('/login');
-	};
-
 	return (
 		<div className='min-h-screen bg-background'>
 			{/* Mobile Sidebar Toggle */}
@@ -34,14 +28,6 @@ export default function DashboardLayout({
 				:	<Menu className='w-6 h-6' />}
 			</button>
 
-			{/* Sidebar */}
-			<div
-				className={`fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:translate-x-0 ${
-					sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-				}`}>
-				<Sidebar onClose={() => setSidebarOpen(false)} />
-			</div>
-
 			{/* Overlay for mobile */}
 			{sidebarOpen && (
 				<div
@@ -51,8 +37,8 @@ export default function DashboardLayout({
 			)}
 
 			{/* Main Content */}
-			<div className='lg:pl-64'>
-				<Header onLogout={handleLogout} />
+			<div className=''>
+				<Header  />
 				<main className='p-4 md:p-6'>{children}</main>
 			</div>
 		</div>

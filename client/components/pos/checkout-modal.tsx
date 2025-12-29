@@ -8,6 +8,7 @@ import { X, CreditCard, DollarSign, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 interface CheckoutModalProps {
 	cart: any[];
@@ -26,6 +27,7 @@ export function CheckoutModal({
 	onConfirm,
 	isLoading,
 }: CheckoutModalProps) {
+	const { t } = useTranslation();
 	const [paymentMethod, setPaymentMethod] = useState<
 		'cash' | 'card' | 'mobile'
 	>('card');
@@ -39,7 +41,7 @@ export function CheckoutModal({
 
 	const handleConfirm = () => {
 		if (paymentMethod === 'cash' && parseFloat(cashAmount) < finalTotal) {
-			alert('Insufficient cash amount');
+			alert(t('checkout.insufficientAmount'));
 			return;
 		}
 
@@ -53,12 +55,25 @@ export function CheckoutModal({
 		onConfirm(paymentData);
 	};
 
+	const getPaymentMethodLabel = (method: string) => {
+		switch (method) {
+			case 'card':
+				return t('checkout.card');
+			case 'cash':
+				return t('checkout.cash');
+			case 'mobile':
+				return t('checkout.mobile');
+			default:
+				return method;
+		}
+	};
+
 	return (
 		<div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
 			<div className='bg-background rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
 				{/* Header */}
 				<div className='flex items-center justify-between p-6 border-b'>
-					<h2 className='text-2xl font-bold'>Checkout</h2>
+					<h2 className='text-2xl font-bold'>{t('checkout.title')}</h2>
 					<Button
 						variant='ghost'
 						size='icon'
@@ -71,7 +86,9 @@ export function CheckoutModal({
 					{/* Order Summary */}
 					<Card>
 						<CardContent className='p-6'>
-							<h3 className='font-semibold mb-4'>Order Summary</h3>
+							<h3 className='font-semibold mb-4'>
+								{t('checkout.orderSummary')}
+							</h3>
 							<div className='space-y-2'>
 								{cart.map((item) => (
 									<div
@@ -89,7 +106,9 @@ export function CheckoutModal({
 
 					{/* Payment Method */}
 					<div>
-						<h3 className='font-semibold mb-4'>Payment Method</h3>
+						<h3 className='font-semibold mb-4'>
+							{t('checkout.paymentMethod')}
+						</h3>
 						<div className='grid grid-cols-3 gap-4'>
 							<button
 								onClick={() => setPaymentMethod('card')}
@@ -99,7 +118,7 @@ export function CheckoutModal({
 									:	'border-border hover:border-primary/50'
 								}`}>
 								<CreditCard className='w-6 h-6' />
-								<span>Card</span>
+								<span>{t('checkout.card')}</span>
 							</button>
 							<button
 								onClick={() => setPaymentMethod('cash')}
@@ -109,7 +128,7 @@ export function CheckoutModal({
 									:	'border-border hover:border-primary/50'
 								}`}>
 								<DollarSign className='w-6 h-6' />
-								<span>Cash</span>
+								<span>{t('checkout.cash')}</span>
 							</button>
 							<button
 								onClick={() => setPaymentMethod('mobile')}
@@ -119,7 +138,7 @@ export function CheckoutModal({
 									:	'border-border hover:border-primary/50'
 								}`}>
 								<Smartphone className='w-6 h-6' />
-								<span>Mobile</span>
+								<span>{t('checkout.mobile')}</span>
 							</button>
 						</div>
 					</div>
@@ -128,7 +147,7 @@ export function CheckoutModal({
 					{paymentMethod === 'cash' && (
 						<div>
 							<label className='block text-sm font-medium mb-2'>
-								Cash Received
+								{t('checkout.cashReceived')}
 							</label>
 							<Input
 								type='number'
@@ -139,11 +158,13 @@ export function CheckoutModal({
 							/>
 							{cashAmount && change >= 0 && (
 								<p className='text-sm text-green-600 mt-2'>
-									Change: ${change.toFixed(2)}
+									{t('checkout.change')}: ${change.toFixed(2)}
 								</p>
 							)}
 							{cashAmount && change < 0 && (
-								<p className='text-sm text-red-600 mt-2'>Insufficient amount</p>
+								<p className='text-sm text-red-600 mt-2'>
+									{t('checkout.insufficientAmount')}
+								</p>
 							)}
 						</div>
 					)}
@@ -151,7 +172,9 @@ export function CheckoutModal({
 					{/* Tip & Discount */}
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
-							<label className='block text-sm font-medium mb-2'>Tip</label>
+							<label className='block text-sm font-medium mb-2'>
+								{t('checkout.tip')}
+							</label>
 							<Input
 								type='number'
 								step='0.01'
@@ -161,7 +184,9 @@ export function CheckoutModal({
 							/>
 						</div>
 						<div>
-							<label className='block text-sm font-medium mb-2'>Discount</label>
+							<label className='block text-sm font-medium mb-2'>
+								{t('checkout.discount')}
+							</label>
 							<Input
 								type='number'
 								step='0.01'
@@ -177,27 +202,27 @@ export function CheckoutModal({
 						<CardContent className='p-6'>
 							<div className='space-y-2'>
 								<div className='flex justify-between'>
-									<span>Subtotal</span>
+									<span>{t('pos.subtotal')}</span>
 									<span>${total.toFixed(2)}</span>
 								</div>
 								<div className='flex justify-between'>
-									<span>Tax (13%)</span>
+									<span>{t('pos.tax')}</span>
 									<span>${tax.toFixed(2)}</span>
 								</div>
 								{tip > 0 && (
 									<div className='flex justify-between'>
-										<span>Tip</span>
+										<span>{t('checkout.tip')}</span>
 										<span>${tip.toFixed(2)}</span>
 									</div>
 								)}
 								{discount > 0 && (
 									<div className='flex justify-between text-green-600'>
-										<span>Discount</span>
+										<span>{t('checkout.discount')}</span>
 										<span>-${discount.toFixed(2)}</span>
 									</div>
 								)}
 								<div className='flex justify-between pt-2 border-t font-bold text-lg'>
-									<span>Total</span>
+									<span>{t('checkout.total')}</span>
 									<span>${finalTotal.toFixed(2)}</span>
 								</div>
 							</div>
@@ -211,13 +236,15 @@ export function CheckoutModal({
 							className='flex-1'
 							onClick={onClose}
 							disabled={isLoading}>
-							Cancel
+							{t('checkout.cancel')}
 						</Button>
 						<Button
 							className='flex-1'
 							onClick={handleConfirm}
 							disabled={isLoading}>
-							{isLoading ? 'Processing...' : 'Complete Sale'}
+							{isLoading ?
+								t('checkout.processing')
+							:	t('checkout.completeSale')}
 						</Button>
 					</div>
 				</div>

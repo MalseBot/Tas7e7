@@ -7,6 +7,7 @@ import { Clock, CheckCircle, AlertCircle, ChefHat } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface KitchenOrderCardProps {
 	order: any;
@@ -21,6 +22,7 @@ export function KitchenOrderCard({
 	onMarkReady,
 	isLoading,
 }: KitchenOrderCardProps) {
+	const { t } = useTranslation();
 	const preparationTime = order.items.reduce((total: number, item: any) => {
 		return total + (item.menuItem?.preparationTime || 10) * item.quantity;
 	}, 0);
@@ -28,16 +30,29 @@ export function KitchenOrderCard({
 	const isPreparing = order.status === 'preparing';
 	const isPending = order.status === 'pending';
 
+	const getStatusText = (status: string) => {
+		switch (status) {
+			case 'pending':
+				return t('kitchen.pending');
+			case 'preparing':
+				return t('kitchen.preparing');
+			case 'ready':
+				return t('kitchen.ready');
+			default:
+				return status;
+		}
+	};
+
 	return (
 		<Card>
 			<CardHeader className='pb-3'>
 				<div className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='text-lg'>
-							Order #{order.orderNumber}
+							{t('common.order')} #{order.orderNumber}
 						</CardTitle>
 						<p className='text-sm text-muted-foreground'>
-							Table: {order.tableNumber}
+							{t('orders.table')}: {order.tableNumber}
 						</p>
 					</div>
 					<Badge
@@ -47,7 +62,7 @@ export function KitchenOrderCard({
 								'secondary'
 							:	'default'
 						}>
-						{order.status}
+						{getStatusText(order.status)}
 					</Badge>
 				</div>
 			</CardHeader>
@@ -62,13 +77,13 @@ export function KitchenOrderCard({
 							<div>
 								<p className='font-medium'>{item.name}</p>
 								<p className='text-sm text-muted-foreground'>
-									Qty: {item.quantity}
+									{t('common.quantity')}: {item.quantity}
 								</p>
 							</div>
 							<div className='flex items-center gap-2'>
 								<Clock className='w-4 h-4 text-muted-foreground' />
 								<span className='text-sm'>
-									{item.menuItem?.preparationTime || 10} min
+									{item.menuItem?.preparationTime || 10} {t('common.min')}
 								</span>
 							</div>
 						</div>
@@ -89,10 +104,12 @@ export function KitchenOrderCard({
 				<div className='flex items-center justify-between text-sm mb-4'>
 					<div className='flex items-center gap-1'>
 						<Clock className='w-4 h-4 text-muted-foreground' />
-						<span>Est: {preparationTime} min</span>
+						<span>
+							{t('common.estimated')}: {preparationTime} {t('common.min')}
+						</span>
 					</div>
 					<div>
-						Ordered:{' '}
+						{t('common.ordered')}:{' '}
 						{new Date(order.createdAt).toLocaleTimeString([], {
 							hour: '2-digit',
 							minute: '2-digit',
@@ -108,7 +125,7 @@ export function KitchenOrderCard({
 							disabled={isLoading}
 							className='flex-1'>
 							<ChefHat className='w-4 h-4 mr-2' />
-							Start Preparation
+							{t('kitchen.startPreparation')}
 						</Button>
 					)}
 
@@ -118,7 +135,7 @@ export function KitchenOrderCard({
 							disabled={isLoading}
 							className='flex-1'>
 							<CheckCircle className='w-4 h-4 mr-2' />
-							Mark as Ready
+							{t('kitchen.markReady')}
 						</Button>
 					)}
 				</div>

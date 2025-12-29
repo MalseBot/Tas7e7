@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 interface MenuItemModalProps {
 	item?: any;
@@ -18,6 +19,7 @@ interface MenuItemModalProps {
 }
 
 export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
+	const { t } = useTranslation();
 	const queryClient = useQueryClient();
 	const [formData, setFormData] = useState({
 		name: item?.name || '',
@@ -63,13 +65,23 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 		saveMutation.mutate();
 	};
 
+	const getCategoryLabel = (cat: string) => {
+		return t(`menu.categories.${cat}`, cat);
+	};
+
+	const getSubCategoryLabel = (sub: string) => {
+		return t(`menu.subcategories.${sub}`, sub);
+	};
+
 	return (
 		<div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
 			<div className='bg-background rounded-xl max-w-md w-full'>
 				{/* Header */}
 				<div className='flex items-center justify-between p-6 border-b'>
 					<h2 className='text-2xl font-bold'>
-						{item ? 'Edit Menu Item' : 'Add Menu Item'}
+						{item ?
+							t('menuItemModal.editMenuItem')
+						:	t('menuItemModal.addMenuItem')}
 					</h2>
 					<Button
 						variant='ghost'
@@ -83,7 +95,9 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 					onSubmit={handleSubmit}
 					className='p-6 space-y-4'>
 					<div>
-						<label className='block text-sm font-medium mb-2'>Name *</label>
+						<label className='block text-sm font-medium mb-2'>
+							{t('menuItemModal.name')} *
+						</label>
 						<Input
 							value={formData.name}
 							onChange={(e) =>
@@ -95,7 +109,7 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 
 					<div>
 						<label className='block text-sm font-medium mb-2'>
-							Description
+							{t('menuItemModal.description')}
 						</label>
 						<Input
 							value={formData.description}
@@ -107,7 +121,9 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
-							<label className='block text-sm font-medium mb-2'>Price *</label>
+							<label className='block text-sm font-medium mb-2'>
+								{t('menuItemModal.price')} *
+							</label>
 							<Input
 								type='number'
 								step='0.01'
@@ -122,7 +138,9 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 							/>
 						</div>
 						<div>
-							<label className='block text-sm font-medium mb-2'>Cost</label>
+							<label className='block text-sm font-medium mb-2'>
+								{t('menuItemModal.cost')}
+							</label>
 							<Input
 								type='number'
 								step='0.01'
@@ -137,7 +155,7 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-sm font-medium mb-2'>
-								Category *
+								{t('menuItemModal.category')} *
 							</label>
 							<select
 								className='w-full h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm'
@@ -153,14 +171,14 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 									<option
 										key={cat}
 										value={cat}>
-										{cat}
+										{getCategoryLabel(cat)}
 									</option>
 								))}
 							</select>
 						</div>
 						<div>
 							<label className='block text-sm font-medium mb-2'>
-								Sub Category
+								{t('menuItemModal.subCategory')}
 							</label>
 							<select
 								className='w-full h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm'
@@ -168,12 +186,12 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 								onChange={(e) =>
 									setFormData({ ...formData, subCategory: e.target.value })
 								}>
-								<option value=''>None</option>
+								<option value=''>{t('common.none')}</option>
 								{subCategories[formData.category]?.map((sub) => (
 									<option
 										key={sub}
 										value={sub}>
-										{sub}
+										{getSubCategoryLabel(sub)}
 									</option>
 								))}
 							</select>
@@ -183,7 +201,7 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-sm font-medium mb-2'>
-								Prep Time (min)
+								{t('menuItemModal.preparationTime')}
 							</label>
 							<Input
 								type='number'
@@ -197,7 +215,9 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 							/>
 						</div>
 						<div>
-							<label className='block text-sm font-medium mb-2'>Stock</label>
+							<label className='block text-sm font-medium mb-2'>
+								{t('menuItemModal.stock')}
+							</label>
 							<Input
 								type='number'
 								value={formData.stock}
@@ -221,7 +241,7 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 						<label
 							htmlFor='isAvailable'
 							className='text-sm'>
-							Item is available for ordering
+							{t('menuItemModal.isAvailable')}
 						</label>
 					</div>
 
@@ -232,17 +252,17 @@ export function MenuItemModal({ item, onClose, onSave }: MenuItemModalProps) {
 							className='flex-1'
 							onClick={onClose}
 							disabled={saveMutation.isPending}>
-							Cancel
+							{t('common.cancel')}
 						</Button>
 						<Button
 							type='submit'
 							className='flex-1'
 							disabled={saveMutation.isPending}>
 							{saveMutation.isPending ?
-								'Saving...'
+								t('menuItemModal.saving')
 							: item ?
-								'Update'
-							:	'Add Item'}
+								t('common.update')
+							:	t('menuItemModal.addItem')}
 						</Button>
 					</div>
 				</form>
