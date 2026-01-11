@@ -14,5 +14,9 @@
 		"concurrently": "^9.2.1",
 		"nodemon": "^3.1.10",
 		"tailwindcss": "^4"
+	},
+	"dependencies": {
+		"escpos": "^3.0.0-alpha.6",
+		"escpos-usb": "^3.0.0-alpha.4"
 	}
 }

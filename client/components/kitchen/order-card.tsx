@@ -3,24 +3,34 @@
 // components/kitchen/order-card.tsx
 'use client';
 
-import { Clock, CheckCircle, AlertCircle, ChefHat } from 'lucide-react';
+import {
+	Clock,
+	CheckCircle,
+	AlertCircle,
+	ChefHat,
+	Printer,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/lib/hooks/useTranslation';
 
 interface KitchenOrderCardProps {
 	order: any;
 	onStartPrep: () => void;
 	onMarkReady: () => void;
+	onPrint?: () => void;
 	isLoading: boolean;
+	isPrinting?: boolean;
 }
 
 export function KitchenOrderCard({
 	order,
 	onStartPrep,
 	onMarkReady,
+	onPrint,
 	isLoading,
+	isPrinting,
 }: KitchenOrderCardProps) {
 	const { t } = useTranslation();
 	const preparationTime = order.items.reduce((total: number, item: any) => {
@@ -52,7 +62,7 @@ export function KitchenOrderCard({
 							{t('common.order')} #{order.orderNumber}
 						</CardTitle>
 						<p className='text-sm text-muted-foreground'>
-							{t('orders.table')}: {order.tableNumber}
+							{t('orders.table')}: {order.tableNumber === 'pos.takeaway' ? t('pos.takeaway') : order.tableNumber}
 						</p>
 					</div>
 					<Badge
@@ -119,10 +129,21 @@ export function KitchenOrderCard({
 
 				{/* Actions */}
 				<div className='flex gap-2'>
+					{onPrint && (
+						<Button
+							onClick={onPrint}
+							disabled={isPrinting}
+							variant='outline'
+							size='sm'>
+							<Printer className='w-4 h-4 mr-2' />
+							{isPrinting ? t('common.printing') : t('common.printReceipt')}
+						</Button>
+					)}
+
 					{isPending && (
 						<Button
 							onClick={onStartPrep}
-							disabled={isLoading}
+							disabled={isLoading || isPrinting}
 							className='flex-1'>
 							<ChefHat className='w-4 h-4 mr-2' />
 							{t('kitchen.startPreparation')}
@@ -132,7 +153,7 @@ export function KitchenOrderCard({
 					{isPreparing && (
 						<Button
 							onClick={onMarkReady}
-							disabled={isLoading}
+							disabled={isLoading || isPrinting}
 							className='flex-1'>
 							<CheckCircle className='w-4 h-4 mr-2' />
 							{t('kitchen.markReady')}

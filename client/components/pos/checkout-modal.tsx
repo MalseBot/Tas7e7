@@ -1,6 +1,6 @@
 /** @format */
 
-// components/pos/checkout-modal.tsx
+// components/pos/checkout-modal.tsx - UPDATED WITH AUTO-PRINT
 'use client';
 
 import { useState } from 'react';
@@ -9,13 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
+import { printService } from '@/lib/api/print-service';
+import { useToast } from '@/lib/hooks/use-toast';
+import { usePrint } from '@/lib/hooks/usePrint';
 
 interface CheckoutModalProps {
 	cart: any[];
 	total: number;
 	selectedTable: string;
 	onClose: () => void;
-	onConfirm: (paymentData: any) => void;
+	onConfirm: (paymentData: any, order?: any) => void;
 	isLoading: boolean;
 }
 
@@ -27,23 +30,28 @@ export function CheckoutModal({
 	onConfirm,
 	isLoading,
 }: CheckoutModalProps) {
+      const { printReceipt } = usePrint();
 	const { t } = useTranslation();
+	const { toast } = useToast();
 	const [paymentMethod, setPaymentMethod] = useState<
 		'cash' | 'card' | 'mobile'
 	>('card');
 	const [cashAmount, setCashAmount] = useState('');
 	const [tip, setTip] = useState(0);
 	const [discount, setDiscount] = useState(0);
+	const [isPrinting, setIsPrinting] = useState(false);
 
 	const tax = total * 0.13;
 	const finalTotal = total + tax + tip - discount;
 	const change = cashAmount ? parseFloat(cashAmount) - finalTotal : 0;
 
-	const handleConfirm = () => {
+	const handleConfirm = async () => {
 		if (paymentMethod === 'cash' && parseFloat(cashAmount) < finalTotal) {
 			alert(t('checkout.insufficientAmount'));
 			return;
 		}
+
+        
 
 		const paymentData = {
 			method: paymentMethod,
@@ -52,6 +60,8 @@ export function CheckoutModal({
 			discountCode: discount > 0 ? 'CUSTOM' : undefined,
 		};
 
+		// Call parent's onConfirm which should trigger order creation
+		// The order is then automatically printed
 		onConfirm(paymentData);
 	};
 
@@ -235,14 +245,14 @@ export function CheckoutModal({
 							variant='outline'
 							className='flex-1'
 							onClick={onClose}
-							disabled={isLoading}>
+							disabled={isLoading || isPrinting}>
 							{t('checkout.cancel')}
 						</Button>
 						<Button
 							className='flex-1'
 							onClick={handleConfirm}
-							disabled={isLoading}>
-							{isLoading ?
+							disabled={isLoading || isPrinting}>
+							{isLoading || isPrinting ?
 								t('checkout.processing')
 							:	t('checkout.completeSale')}
 						</Button>

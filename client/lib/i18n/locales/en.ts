@@ -1,5 +1,7 @@
 /** @format */
 
+import { start } from "repl";
+
 export const en = {
 	common: {
 		loading: 'Loading',
@@ -22,6 +24,22 @@ export const en = {
 		logout: 'Log out',
 		myAccount: 'My Account',
 		close: 'Close',
+		order: 'Order',
+		table: 'Table',
+		total: 'Total',
+		items: 'Items',
+		viewDetails: 'View Details',
+		printReceipt: 'Print Receipt',
+		noData: 'No data available',
+		tryAgain: 'Try Again',
+		min: 'min',
+		hour: 'hour',
+		hours: 'hours',
+		day: 'day',
+		days: 'days',
+		ordered: 'ordered',
+		quantity: 'Quantity',
+		estimated: 'Estimated',
 	},
 
 	auth: {
@@ -65,6 +83,8 @@ export const en = {
 		inProgress: 'In Progress',
 		noPendingOrders: 'No pending orders',
 		noOrdersInProgress: 'No orders in progress',
+		startPreparation: 'Start Preparing',
+		markReady: 'Mark as Ready',
 	},
 
 	menu: {
@@ -130,6 +150,7 @@ export const en = {
 		printReceipt: 'Print Receipt',
 		noOrdersFound: 'No orders found',
 		startTakingOrders: 'Start taking orders at the POS',
+		actions: 'Actions',
 	},
 
 	pos: {
@@ -148,10 +169,12 @@ export const en = {
 		checkout: 'Checkout',
 		checkoutTakeaway: 'Checkout Takeaway',
 		searchProducts: 'Search for product',
+		takeaway: 'Takeaway',
 	},
 
 	checkout: {
 		title: 'Checkout',
+		total: 'Total to Pay',
 		orderSummary: 'Order Summary',
 		paymentMethod: 'Payment Method',
 		card: 'Card',

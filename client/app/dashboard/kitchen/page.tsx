@@ -3,15 +3,21 @@
 // app/dashboard/kitchen/page.tsx
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { kitchenService } from '@/lib/api/services';
 import { KitchenOrderCard } from '@/components/kitchen/order-card';
 import { Clock, ChefHat, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { usePrint } from '@/lib/hooks/usePrint';
+import { useToast } from '@/lib/hooks/use-toast';
 
 export default function KitchenPage() {
 	const queryClient = useQueryClient();
 	const { t } = useTranslation();
+	const { printReceipt } = usePrint();
+	const { toast } = useToast();
+	const [printingOrderId, setPrintingOrderId] = useState<string | null>(null);
 
 	const { data: orders, isLoading } = useQuery({
 		queryKey: ['kitchen-orders'],
@@ -32,6 +38,31 @@ export default function KitchenPage() {
 			queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
 		},
 	});
+
+	// Print mutation
+	const printMutation = useMutation({
+		mutationFn: (order: any) => printReceipt(order),
+		onSuccess: () => {
+			toast({
+				title: 'Success',
+				description: 'Receipt sent to printer',
+			});
+			setPrintingOrderId(null);
+		},
+		onError: () => {
+			toast({
+				title: 'Error',
+				description: 'Failed to print receipt',
+				variant: 'destructive',
+			});
+			setPrintingOrderId(null);
+		},
+	});
+
+	const handlePrintOrder = (order: any) => {
+		setPrintingOrderId(order._id);
+		printMutation.mutate(order);
+	};
 
 	const pendingOrders = orders?.data?.data?.pending;
 	const preparingOrders = orders?.data?.data?.preparing;
@@ -108,10 +139,14 @@ export default function KitchenPage() {
 								key={order._id}
 								order={order}
 								onStartPrep={() => startPrepMutation.mutate(order._id)}
+								onPrint={() => handlePrintOrder(order)}
 								onMarkReady={() => {}}
 								isLoading={
 									startPrepMutation.variables === order._id &&
 									startPrepMutation.isPending
+								}
+								isPrinting={
+									printingOrderId === order._id && printMutation.isPending
 								}
 							/>
 						))}
@@ -135,10 +170,14 @@ export default function KitchenPage() {
 								key={order._id}
 								order={order}
 								onMarkReady={() => markReadyMutation.mutate(order._id)}
+								onPrint={() => handlePrintOrder(order)}
 								onStartPrep={() => {}}
 								isLoading={
 									markReadyMutation.variables === order._id &&
 									markReadyMutation.isPending
+								}
+								isPrinting={
+									printingOrderId === order._id && printMutation.isPending
 								}
 							/>
 						))}

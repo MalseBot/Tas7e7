@@ -1,5 +1,7 @@
 /** @format */
 
+import { min } from "date-fns";
+
 export const ar = {
 	common: {
 		loading: 'جاري التحميل',
@@ -22,6 +24,17 @@ export const ar = {
 		logout: 'تسجيل الخروج',
 		myAccount: 'حسابي الشخصي',
 		close: 'إغلاق',
+		quantity: 'الكمية',
+		price: 'السعر',
+		total: 'الإجمالي',
+		min: 'دقيقة',
+		hour: 'ساعة',
+		day: 'يوم',
+		estimated: 'المقدر',
+		ordered: 'تم الطلب',
+		order: 'طلب',
+		printing: 'جاري الطباعة...',
+		printReceipt: 'طباعة الإيصال',
 	},
 	tables: {
 		title: 'الطاولات',
@@ -86,6 +99,8 @@ export const ar = {
 		inProgress: 'قيد التنفيذ',
 		noPendingOrders: 'لا توجد طلبات قيد الانتظار',
 		noOrdersInProgress: 'لا توجد طلبات قيد التنفيذ',
+		markReady: 'وضع كجاهز',
+		startPreparation: 'ابدأ التحضير',
 	},
 
 	menu: {
@@ -151,6 +166,7 @@ export const ar = {
 		printReceipt: 'طباعة الإيصال',
 		noOrdersFound: 'لم يتم العثور على طلبات',
 		startTakingOrders: 'ابدأ في استقبال الطلبات من نقطة البيع',
+		actions: 'الإجراءات',
 	},
 
 	pos: {
@@ -169,10 +185,12 @@ export const ar = {
 		checkout: 'الدفع',
 		checkoutTakeaway: 'دفع طلبات التوصيل',
 		searchProducts: ' ابحث عن المنتج',
+		takeaway: 'طلبات التوصيل',
 	},
 
 	checkout: {
 		title: 'الدفع',
+		total:'الإجمالي للدفع',
 		orderSummary: 'ملخص الطلب',
 		paymentMethod: 'طريقة الدفع',
 		card: 'بطاقة',
