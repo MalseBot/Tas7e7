@@ -50,10 +50,47 @@ const [printingOrderId, setPrintingOrderId] = useState<string | null>(null);
 
 const { data: orders, isLoading } = useQuery({
 queryKey: ['orders', { dateFilter, statusFilter }],
-queryFn: () =>
-orderService.getOrders({
+queryFn: () => {
+const now = new Date();
+let startDate: string | undefined;
+let endDate: string | undefined;
+
+switch (dateFilter) {
+case 'today': {
+const start = new Date(now);
+start.setHours(0, 0, 0, 0);
+const end = new Date(now);
+end.setHours(23, 59, 59, 999);
+startDate = start.toISOString();
+endDate = end.toISOString();
+break;
+}
+case 'week': {
+const start = new Date(now);
+start.setDate(now.getDate() - 6);
+start.setHours(0, 0, 0, 0);
+const end = new Date(now);
+end.setHours(23, 59, 59, 999);
+startDate = start.toISOString();
+endDate = end.toISOString();
+break;
+}
+case 'month': {
+const start = new Date(now.getFullYear(), now.getMonth(), 1);
+startDate = start.toISOString();
+endDate = now.toISOString();
+break;
+}
+default:
+break;
+}
+
+return orderService.getOrders({
 status: statusFilter !== 'all' ? statusFilter : undefined,
-}),
+startDate,
+endDate,
+});
+},
 });
 
 // Print mutation with tanstack
@@ -257,7 +294,7 @@ return (
 {order.customerName || t('orders.walkIn')}
 </TableCell>
 <TableCell>
-{order.tableNumber === 'Takeaway' ?
+{order.tableNumber === 'Takeaway' || order.tableNumber === 'pos.takeaway' ?
 <Badge variant='outline'>{t('orders.takeaway')}</Badge>
 :order.tableNumber}
 </TableCell>

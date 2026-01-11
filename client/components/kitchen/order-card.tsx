@@ -39,6 +39,8 @@ export function KitchenOrderCard({
 
 	const isPreparing = order.status === 'preparing';
 	const isPending = order.status === 'pending';
+	const isTakeaway =
+		order.tableNumber === 'pos.takeaway' || order.tableNumber === 'Takeaway';
 
 	const getStatusText = (status: string) => {
 		switch (status) {
@@ -62,7 +64,7 @@ export function KitchenOrderCard({
 							{t('common.order')} #{order.orderNumber}
 						</CardTitle>
 						<p className='text-sm text-muted-foreground'>
-							{t('orders.table')}: {order.tableNumber === 'pos.takeaway' ? t('pos.takeaway') : order.tableNumber}
+							{t('orders.table')}: {isTakeaway ? t('pos.takeaway') : order.tableNumber}
 						</p>
 					</div>
 					<Badge

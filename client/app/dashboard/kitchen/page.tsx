@@ -120,7 +120,7 @@ export default function KitchenPage() {
 						<h3 className='font-medium text-green-900'>{t('kitchen.ready')}</h3>
 					</div>
 					<p className='text-2xl font-bold text-green-900'>
-						{orders?.data?.data?.ready.length || 0}
+						{orders?.data?.data?.ready?.length || 0}
 					</p>
 				</div>
 			</div>
