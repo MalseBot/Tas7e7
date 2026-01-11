@@ -6,7 +6,7 @@ import { Button, ButtonProps } from './button';
 import { Printer } from 'lucide-react';
 import { useState } from 'react';
 import { printService } from '@/lib/api/print-service';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/hooks/use-toast';
 
 interface PrintButtonProps extends ButtonProps {
   orderData: any;
