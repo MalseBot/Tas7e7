@@ -1,7 +1,7 @@
 /** @format */
 
 import express from 'express';
-import { printReceipt } from '../../hardware-integrations/receiptPrinter.js';
+import { printReceipt } from '../hardware-integrations/receiptPrinter.js';
 
 const router = express.Router();
 
