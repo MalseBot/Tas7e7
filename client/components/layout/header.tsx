@@ -4,7 +4,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, Bell, User, Home } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -71,8 +71,12 @@ export function Header() {
 									<Link
 										href='/dashboard'
 										className='flex items-center gap-2 ps-10'>
-										<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
-											<Home className='w-5 h-5 text-white' />
+										<div className='w-8 h-8 rounded-lg overflow-hidden shadow-sm bg-white flex items-center justify-center'>
+											<img
+												src='/logo.png'
+												alt={settings?.data.data.cafeName || t('common.appName')}
+												className='w-full h-full object-cover'
+											/>
 										</div>
 										<span className='text-xl font-bold text-foreground'>
 											{settings?.data.data.cafeName}
@@ -86,8 +90,12 @@ export function Header() {
 
 					{/* Logo/Brand */}
 					<div className='flex items-center gap-2'>
-						<div className='h-8 w-8 rounded-md bg-primary flex items-center justify-center'>
-							<span className='text-primary-foreground font-bold'>C</span>
+						<div className='h-8 w-8 rounded-md overflow-hidden shadow-sm bg-white flex items-center justify-center'>
+							<img
+								src='/logo.png'
+								alt={settings?.data.data.cafeName || t('common.appName')}
+								className='w-full h-full object-cover'
+							/>
 						</div>
 						<h1 className='text-xl font-bold hidden sm:block'>
 							{settings?.data.data.cafeName}

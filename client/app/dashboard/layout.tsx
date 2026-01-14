@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { Coffee, LogOut, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function DashboardLayout({
 	children,

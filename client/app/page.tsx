@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Coffee, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -45,8 +45,12 @@ export default function HomePage() {
 		<div className='min-h-screen flex items-center justify-center bg-linear-to-br from-primary/10 to-secondary/10'>
 			{/* Loading spinner */}
 			<div className='text-center'>
-				<div className='inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-6 animate-pulse'>
-					<Coffee className='w-10 h-10 text-white' />
+				<div className='inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden shadow-sm bg-white mb-6 animate-pulse'>
+					<img
+						src='/logo.png'
+						alt='Tas7e7'
+						className='w-full h-full object-cover'
+					/>
 				</div>
 				<h1 className='text-3xl font-bold text-foreground mb-2'>Café POS</h1>
 				<div className='flex items-center justify-center gap-2'>

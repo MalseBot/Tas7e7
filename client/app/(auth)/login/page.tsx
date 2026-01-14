@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/lib/api/services';
-import { Lock, Mail, Coffee } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -42,8 +42,12 @@ export default function LoginPage() {
 			<div className='w-full max-w-md'>
 				{/* Logo */}
 				<div className='text-center mb-8'>
-					<div className='inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4'>
-						<Coffee className='w-8 h-8 text-white' />
+					<div className='inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl overflow-hidden shadow-sm bg-white'>
+						<img
+							src='/logo.png'
+							alt={t('common.appName')}
+							className='w-full h-full object-cover'
+						/>
 					</div>
 					<h1 className='text-3xl font-bold text-foreground'>
 						{t('common.appName')}
