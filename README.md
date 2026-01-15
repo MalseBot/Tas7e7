@@ -104,10 +104,18 @@ Tas7e7 is a restaurant management system focused on daily operations: order capt
 
 </div>
 
-- Node.js + Express backend
-- MongoDB data store
-- REST API for POS, KDS, and admin clients
-- JWT authentication and role-based authorization
+- Backend (server)
+  - Node.js + Express (REST API)
+  - MongoDB + Mongoose
+  - JWT auth + bcryptjs
+  - dotenv, CORS, config
+  - ESC/POS printing via escpos + escpos-usb
+- Frontend (client)
+  - Next.js + React
+  - TanStack React Query + Axios
+  - Tailwind CSS + Radix UI
+  - React Hook Form + Zod
+  - i18next + language detection
 
 ---
 
@@ -123,4 +131,3 @@ Tas7e7 is a restaurant management system focused on daily operations: order capt
 ## Visuals
 
 If you have screenshots or demo videos, link them here to showcase the POS and kitchen views.
-
