@@ -1,6 +1,7 @@
 # Tas7e7 - Modern Restaurant Management System
 
 <div align="center">
+<img width="1536" height="1024" alt="thumbnail" src="https://github.com/user-attachments/assets/78096f8a-1b66-4632-872b-1fce7ebf202a" />
 
 ![Tas7e7 Banner](https://img.shields.io/badge/Tas7e7-Restaurant%20Management-blue)
 ![POS](https://img.shields.io/badge/POS-Point%20of%20Sale-2ea44f)
@@ -122,5 +123,13 @@ Tas7e7 is a restaurant management system focused on daily operations: order capt
 
 ## Visuals
 
-If you have screenshots or demo videos, link them here to showcase the POS and kitchen views.
+
+<img width="1913" height="915" alt="Screenshot 2026-01-14 084449" src="https://github.com/user-attachments/assets/f9ed50fd-a801-441b-b3af-916af9ddb2d4" />
+<img width="1909" height="912" alt="Screenshot 2026-01-14 084435" src="https://github.com/user-attachments/assets/9e2d72b5-a0c8-4072-8810-18d92e9c946d" />
+<img width="1913" height="915" alt="Screenshot 2026-01-14 084418" src="https://github.com/user-attachments/assets/9cac1f13-210d-4bf3-b307-7d85e4093f99" />
+<img width="1915" height="915" alt="Screenshot 2026-01-14 084404" src="https://github.com/user-attachments/assets/2325bab1-f532-4e0a-8349-c88319c93c5c" />
+<img width="1910" height="913" alt="Screenshot 2026-01-14 084348" src="https://github.com/user-attachments/assets/a7593947-756f-4dff-ab6d-395aec2830c2" />
+<img width="1916" height="918" alt="Screenshot 2026-01-14 084333" src="https://github.com/user-attachments/assets/959d1f83-e980-4570-804a-abd514913ca4" />
+<img width="1919" height="918" alt="Screenshot 2026-01-14 084310" src="https://github.com/user-attachments/assets/b87b0675-b8cf-42d8-9326-2ca759ce61e0" />
+<img width="1910" height="916" alt="Screenshot 2026-01-14 084250" src="https://github.com/user-attachments/assets/9932323d-845c-40fd-86b2-1df8cd3f9dc7" />
 
