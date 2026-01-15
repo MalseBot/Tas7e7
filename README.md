@@ -7,7 +7,10 @@
 ![POS](https://img.shields.io/badge/POS-Point%20of%20Sale-2ea44f)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-brightgreen)
-![Express](https://img.shields.io/badge/Express-4.18-lightgrey)
+![Express](https://img.shields.io/badge/Express-5.2-lightgrey)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![React](https://img.shields.io/badge/React-19-61DAFB)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-38BDF8)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 **A complete Point of Sale (POS) and restaurant operations platform**
