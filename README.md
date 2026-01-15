@@ -1,6 +1,7 @@
 # Tas7e7 - Modern Restaurant Management System
 
 <div align="center">
+<img width="1536" height="1024" alt="thumbnail" src="https://github.com/user-attachments/assets/78096f8a-1b66-4632-872b-1fce7ebf202a" />
 
 ![Tas7e7 Banner](https://img.shields.io/badge/Tas7e7-Restaurant%20Management-blue)
 ![POS](https://img.shields.io/badge/POS-Point%20of%20Sale-2ea44f)
@@ -131,3 +132,4 @@ Tas7e7 is a restaurant management system focused on daily operations: order capt
 ## Visuals
 
 If you have screenshots or demo videos, link them here to showcase the POS and kitchen views.
+
